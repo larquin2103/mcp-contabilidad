@@ -43,28 +43,27 @@ Necesario para entender el modelo antes de construir consultas.`,
 ];
 
 export async function ejecutarDiscovery(name: string, args: any): Promise<string> {
-  const pool = await getPool();
 
   // ── listar_bases_datos ──────────────────────────────────────────
+  // Conecta a master y consulta sysdatabases (SQL Server 2000).
   if (name === 'listar_bases_datos') {
-    const result = await pool.request().query(`
-      SELECT name, create_date, state_desc
-      FROM sys.databases
+    const master = await getPool('master');
+    const result = await master.request().query(`
+      SELECT name, crdate AS create_date
+      FROM master..sysdatabases
       WHERE name NOT IN ('master','tempdb','model','msdb')
-        AND state_desc = 'ONLINE'
       ORDER BY name
     `);
 
     let dbs = result.recordset
-      .map(r => ({ raw: r, info: parsearNombreDB(r.name) }))
-      .filter(r => r.info !== null)
-      .map(r => r.info!);
+      .map((r: any) => ({ raw: r, info: parsearNombreDB(r.name) }))
+      .filter((r: any) => r.info !== null)
+      .map((r: any) => r.info!);
 
-    if (args.filtro_modulo)  dbs = dbs.filter(d => d.modulo  === args.filtro_modulo);
-    if (args.filtro_agencia) dbs = dbs.filter(d => d.agencia === args.filtro_agencia);
-    if (args.filtro_anio)    dbs = dbs.filter(d => d.anio    === args.filtro_anio);
+    if (args.filtro_modulo)  dbs = dbs.filter((d: any) => d.modulo  === args.filtro_modulo);
+    if (args.filtro_agencia) dbs = dbs.filter((d: any) => d.agencia === args.filtro_agencia);
+    if (args.filtro_anio)    dbs = dbs.filter((d: any) => d.anio    === args.filtro_anio);
 
-    // Agrupar por módulo → agencia → [años]
     const agrupado: Record<string, Record<string, number[]>> = {};
     for (const db of dbs) {
       if (!agrupado[db.moduloNombre]) agrupado[db.moduloNombre] = {};
@@ -81,6 +80,7 @@ export async function ejecutarDiscovery(name: string, args: any): Promise<string
     const dbPool = await getPool(base_datos);
 
     if (tabla) {
+      // Columnas + PK + FK via INFORMATION_SCHEMA (soportado en SS2000)
       const cols = await dbPool.request()
         .input('tabla', tabla)
         .query(`
@@ -124,33 +124,34 @@ export async function ejecutarDiscovery(name: string, args: any): Promise<string
       }, null, 2);
     }
 
-    // Todas las tablas con conteo
+    // Todas las tablas con conteo de filas via sysobjects + sysindexes (SS2000)
     const tablas = await dbPool.request().query(`
       SELECT
-        t.TABLE_NAME,
-        p.rows AS NumRegistros
-      FROM INFORMATION_SCHEMA.TABLES t
-      JOIN sys.tables    st ON st.name       = t.TABLE_NAME
-      JOIN sys.partitions p  ON p.object_id  = st.object_id
-                             AND p.index_id IN (0, 1)
-      WHERE t.TABLE_TYPE = 'BASE TABLE'
-      ORDER BY p.rows DESC
+        o.name                  AS TABLE_NAME,
+        ISNULL(i.rows, 0)       AS NumRegistros
+      FROM sysobjects o
+      LEFT JOIN sysindexes i ON i.id = o.id AND i.indid <= 1
+      WHERE o.xtype = 'U'
+      ORDER BY ISNULL(i.rows, 0) DESC
     `);
+
     return JSON.stringify({ base_datos, tablas: tablas.recordset }, null, 2);
   }
 
   // ── explorar_relaciones ─────────────────────────────────────────
+  // Usa sysforeignkeys + syscolumns (SS2000). No existe sys.foreign_keys.
   if (name === 'explorar_relaciones') {
     const dbPool = await getPool(args.base_datos);
     const result = await dbPool.request().query(`
       SELECT
-        fk.name                                  AS Relacion,
-        OBJECT_NAME(fkc.parent_object_id)        AS TablaOrigen,
-        COL_NAME(fkc.parent_object_id, fkc.parent_column_id)     AS ColumnaOrigen,
-        OBJECT_NAME(fkc.referenced_object_id)    AS TablaDestino,
-        COL_NAME(fkc.referenced_object_id, fkc.referenced_column_id) AS ColumnaDestino
-      FROM sys.foreign_keys fk
-      JOIN sys.foreign_key_columns fkc ON fk.object_id = fkc.constraint_object_id
+        OBJECT_NAME(sfk.constid)  AS Relacion,
+        OBJECT_NAME(sfk.fkeyid)   AS TablaOrigen,
+        sc1.name                  AS ColumnaOrigen,
+        OBJECT_NAME(sfk.rkeyid)   AS TablaDestino,
+        sc2.name                  AS ColumnaDestino
+      FROM sysforeignkeys sfk
+      JOIN syscolumns sc1 ON sc1.id = sfk.fkeyid AND sc1.colid = sfk.fkey
+      JOIN syscolumns sc2 ON sc2.id = sfk.rkeyid AND sc2.colid = sfk.rkey
       ORDER BY TablaOrigen, TablaDestino
     `);
     return JSON.stringify({ base_datos: args.base_datos, relaciones: result.recordset }, null, 2);
