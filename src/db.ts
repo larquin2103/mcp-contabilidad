@@ -8,18 +8,27 @@ dotenv.config({ path: join(__dirname, '../config/.env') });
 
 // ── Config base (sin BD específica) ──────────────────────────────
 const BASE_CONFIG: sql.config = {
-  server:  process.env.DB_SERVER!,
-  user:    process.env.DB_USER!,
+  server:   process.env.DB_SERVER!,
+  user:     process.env.DB_USER!,
   password: process.env.DB_PASSWORD!,
+  port:     parseInt(process.env.DB_PORT || '1433'),
+
   options: {
-    encrypt:                false,
-    trustServerCertificate: true,
+    encrypt:                false,   // Native Client 10.0 = sin cifrado
+    trustServerCertificate: false,
     enableArithAbort:       true,
-    readOnlyIntent:         true,   // 🔒 Solo lectura
+    readOnlyIntent:         true,
+    instanceName:           undefined,
   },
-  port:             parseInt(process.env.DB_PORT || '1433'),
-  connectionTimeout: parseInt(process.env.DB_CONNECT_TIMEOUT || '15000'),
-  requestTimeout:    parseInt(process.env.DB_REQUEST_TIMEOUT || '30000'),
+
+  connectionTimeout: 15000,
+  requestTimeout:    30000,
+
+  pool: {
+    max:               10,
+    min:               0,
+    idleTimeoutMillis: 30000,
+  },
 };
 
 // ── Pool cache (evitar reconexiones innecesarias) ─────────────────
