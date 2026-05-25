@@ -2,11 +2,12 @@ import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { z } from 'zod';
 
-import { discoveryTools, ejecutarDiscovery }       from './tools/discovery.js';
-import { multidbTools,   ejecutarMultidb }          from './tools/multidb.js';
-import { indicadoresTools, ejecutarIndicadores }    from './tools/indicadores.js';
-import { escenarioTools, ejecutarEscenarios }       from './tools/escenarios.js';
-import { cerrarConexiones }                         from './db.js';
+import { discoveryTools,   ejecutarDiscovery }   from './tools/discovery.js';
+import { multidbTools,     ejecutarMultidb }      from './tools/multidb.js';
+import { indicadoresTools, ejecutarIndicadores }  from './tools/indicadores.js';
+import { escenarioTools,   ejecutarEscenarios }   from './tools/escenarios.js';
+import { construirMensajesCFO }                   from './prompts/cfo-system.js';
+import { cerrarConexiones }                       from './db.js';
 
 // ── Servidor MCP ──────────────────────────────────────────────────
 const server = new McpServer({
@@ -14,7 +15,22 @@ const server = new McpServer({
   version: '1.0.0',
 });
 
-// ── Registrar todas las tools ─────────────────────────────────────
+// ── Prompt: CFO virtual ───────────────────────────────────────────
+server.prompt(
+  'cfo-analisis',
+  'Activa el modo CFO virtual con semáforos, benchmarks y recomendaciones accionables. ' +
+  'Opcionalmente filtra por agencia (CAMA, ANAV) y período (ej: 2025, Q1-2025).',
+  {
+    agencia:             z.string().optional(),
+    periodo:             z.string().optional(),
+    contexto_adicional:  z.string().optional(),
+  },
+  (args: { agencia?: string; periodo?: string; contexto_adicional?: string }) => ({
+    messages: construirMensajesCFO(args),
+  }),
+);
+
+// ── Tools: discovery, multidb, indicadores, escenarios ───────────
 const allGroups = [
   { tools: discoveryTools,   handler: ejecutarDiscovery   },
   { tools: multidbTools,     handler: ejecutarMultidb     },
@@ -27,7 +43,6 @@ for (const { tools, handler } of allGroups) {
     server.tool(
       tool.name,
       tool.description,
-      // Convertir inputSchema a zod shape para el SDK
       buildZodShape(tool.inputSchema),
       async (args: any) => {
         try {
