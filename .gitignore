@@ -1,0 +1,26 @@
+# Dependencias
+node_modules/
+
+# Compilado
+dist/
+
+# Variables de entorno — NUNCA subir a Git
+config/.env
+.env
+*.env
+
+# Configuración local de Claude con credenciales
+config/.claude.json
+
+# Logs
+*.log
+logs/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/
+*.swp

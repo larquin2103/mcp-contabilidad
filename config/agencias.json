@@ -1,0 +1,59 @@
+{
+  "agencias": {
+    "CAMA": {
+      "nombre": "Camaguey",
+      "activa": true,
+      "descripcion": "Agencia Camaguey"
+    },
+    "ANAV": {
+      "nombre": "ANAV",
+      "activa": true,
+      "descripcion": "Agencia ANAV"
+    }
+  },
+  "modulos": {
+    "Fact": {
+      "nombre": "Facturación",
+      "descripcion": "Gestión de facturas, ventas y cobros"
+    },
+    "Conta": {
+      "nombre": "Contabilidad",
+      "descripcion": "Contabilidad general, asientos y estados financieros"
+    },
+    "Inv": {
+      "nombre": "Inventario",
+      "descripcion": "Control de existencias y movimientos de almacén"
+    },
+    "Nom": {
+      "nombre": "Nómina",
+      "descripcion": "Gestión salarial y liquidación de personal"
+    },
+    "CxC": {
+      "nombre": "Cuentas por Cobrar",
+      "descripcion": "Gestión de deudores y cobros pendientes"
+    },
+    "CxP": {
+      "nombre": "Cuentas por Pagar",
+      "descripcion": "Gestión de acreedores y pagos pendientes"
+    },
+    "Tes": {
+      "nombre": "Tesorería",
+      "descripcion": "Flujo de caja, bancos y tesorería"
+    },
+    "AF": {
+      "nombre": "Activos Fijos",
+      "descripcion": "Control y amortización de activos fijos"
+    }
+  },
+  "anios_rango": {
+    "inicio": 2020,
+    "fin": 2030
+  },
+  "convencion_nombre": "{Modulo}{Agencia}{Año}",
+  "ejemplos": [
+    "FactCAMA2025",
+    "ContaCAMA2024",
+    "FactANAV2025",
+    "InvCAMA2023"
+  ]
+}
