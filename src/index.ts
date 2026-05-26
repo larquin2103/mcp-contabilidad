@@ -7,6 +7,7 @@ import { multidbTools,        ejecutarMultidb }         from './tools/multidb.js
 import { indicadoresTools,    ejecutarIndicadores }     from './tools/indicadores.js';
 import { escenarioTools,      ejecutarEscenarios }      from './tools/escenarios.js';
 import { contabilidadTools,   ejecutarContabilidad }    from './tools/contabilidad.js';
+import { facturacionTools,    ejecutarFacturacion }     from './tools/facturacion.js';
 import { construirMensajesCFO }                   from './prompts/cfo-system.js';
 import { cerrarConexiones }                       from './db.js';
 
@@ -36,6 +37,7 @@ const allGroups = [
   { tools: discoveryTools,    handler: ejecutarDiscovery    },
   { tools: multidbTools,      handler: ejecutarMultidb      },
   { tools: contabilidadTools, handler: ejecutarContabilidad },
+  { tools: facturacionTools,  handler: ejecutarFacturacion  },
   { tools: indicadoresTools,  handler: ejecutarIndicadores  },
   { tools: escenarioTools,    handler: ejecutarEscenarios   },
 ];
