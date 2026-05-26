@@ -1,4 +1,4 @@
-import sql from 'mssql';
+import sql from 'mssql/msnodesqlv8.js';
 import dotenv from 'dotenv';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
@@ -6,24 +6,26 @@ import { fileURLToPath } from 'url';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 dotenv.config({ path: join(__dirname, '../config/.env') });
 
-// ── Config base (sin BD específica) ──────────────────────────────
-const BASE_CONFIG: sql.config = {
-  server:   process.env.DB_SERVER!,
-  user:     process.env.DB_USER!,
-  password: process.env.DB_PASSWORD!,
-  port:     parseInt(process.env.DB_PORT || '1433'),
+// ── Connection string por BD ──────────────────────────────────────
+// SQL Server 2000 via ODBC / Native Client 10.0. Cada pool
+// lleva su propia BD en el connection string; no se usa USE [db].
 
-  options: {
-    encrypt:                false,   // Native Client 10.0 = sin cifrado
-    trustServerCertificate: false,
-    enableArithAbort:       true,
-    readOnlyIntent:         true,
-    instanceName:           undefined,
-  },
+function buildConnectionString(database: string): string {
+  const server   = process.env.DB_SERVER   ?? '127.0.0.1';
+  const user     = process.env.DB_USER     ?? 'sa';
+  const password = process.env.DB_PASSWORD ?? '';
+  return (
+    `Driver={SQL Server Native Client 10.0};` +
+    `Server=${server};` +
+    `Database=${database};` +
+    `UID=${user};` +
+    `PWD=${password};`
+  );
+}
 
+const POOL_OPTIONS: Pick<sql.config, 'connectionTimeout' | 'requestTimeout' | 'pool'> = {
   connectionTimeout: 15000,
   requestTimeout:    30000,
-
   pool: {
     max:               10,
     min:               0,
@@ -31,37 +33,31 @@ const BASE_CONFIG: sql.config = {
   },
 };
 
-// ── Pool cache (evitar reconexiones innecesarias) ─────────────────
+// ── Pool cache — una entrada por BD ──────────────────────────────
 const pools = new Map<string, sql.ConnectionPool>();
 
-export async function getPool(database?: string): Promise<sql.ConnectionPool> {
-  const key = database ?? '__master__';
-
-  const existing = pools.get(key);
+export async function getPool(database = 'master'): Promise<sql.ConnectionPool> {
+  const existing = pools.get(database);
   if (existing?.connected) return existing;
-  if (existing) pools.delete(key);  // reconectar si se cayó
+  if (existing) pools.delete(database);   // reconectar si se cayó
 
-  const config: sql.config = {
-    ...BASE_CONFIG,
-    ...(database ? { database } : {}),
-  };
+  const pool = await new sql.ConnectionPool({
+    ...POOL_OPTIONS,
+    connectionString: buildConnectionString(database),
+  }).connect();
 
-  const pool = await new sql.ConnectionPool(config).connect();
-  pools.set(key, pool);
+  pools.set(database, pool);
   return pool;
 }
 
-// ── Verificar si una BD existe y está accesible ───────────────────
+// ── Verificar si una BD existe en el servidor ─────────────────────
+// Usa master..sysdatabases (SQL Server 2000 compatible).
 export async function dbExiste(nombre: string): Promise<boolean> {
   try {
-    const master = await getPool();
+    const master = await getPool('master');
     const result = await master.request()
       .input('nombre', nombre)
-      .query(`
-        SELECT COUNT(1) AS existe
-        FROM sys.databases
-        WHERE name = @nombre AND state_desc = 'ONLINE'
-      `);
+      .query(`SELECT COUNT(1) AS existe FROM master..sysdatabases WHERE name = @nombre`);
     return result.recordset[0].existe === 1;
   } catch {
     return false;
