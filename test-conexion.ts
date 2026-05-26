@@ -1,30 +1,30 @@
-import sql from 'mssql';
+import sql from 'mssql/msnodesqlv8.js';
 
-const config = {
-  server:   'GEOSQL2K',    // nombre del servidor
+const config: any = {
+  server:   '192.168.7.70',
   user:     'sa',
   password: 'swift',
-  port:     1433,
+  driver:   'msnodesqlv8',
   options: {
-    encrypt:                false,
-    trustServerCertificate: false,
-    enableArithAbort:       true,
-    useUTC:                 false,
-    // Compatibilidad SQL Server 2000
-    tdsVersion:             '7_1',
+    trustedConnection: false,
+    encrypt:           false,
   },
-  connectionTimeout: 15000,
+  // Connection string estilo ODBC con Native Client 10.0
+  connectionString:
+    'Driver={SQL Server Native Client 10.0};' +
+    'Server=192.168.7.70;' +
+    'Database=master;' +
+    'UID=sa;PWD=swift;',
 };
 
 async function test() {
   try {
-    console.log('Conectando a GEOSQL2K...');
+    console.log('Conectando via ODBC Native Client...');
     const pool = await new sql.ConnectionPool(config).connect();
-    const result = await pool.request().query(
-      'SELECT name FROM sysdatabases ORDER BY name'
-    );
+    const r = await pool.request()
+      .query('SELECT name FROM sysdatabases ORDER BY name');
     console.log('✅ Conexion exitosa!');
-    result.recordset.forEach((r: any) => console.log(' -', r.name));
+    r.recordset.forEach((row: any) => console.log(' -', row.name));
     await pool.close();
   } catch (err: any) {
     console.error('❌ Error:', err.message);
