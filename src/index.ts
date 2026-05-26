@@ -2,10 +2,11 @@ import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { z } from 'zod';
 
-import { discoveryTools,   ejecutarDiscovery }   from './tools/discovery.js';
-import { multidbTools,     ejecutarMultidb }      from './tools/multidb.js';
-import { indicadoresTools, ejecutarIndicadores }  from './tools/indicadores.js';
-import { escenarioTools,   ejecutarEscenarios }   from './tools/escenarios.js';
+import { discoveryTools,      ejecutarDiscovery }      from './tools/discovery.js';
+import { multidbTools,        ejecutarMultidb }         from './tools/multidb.js';
+import { indicadoresTools,    ejecutarIndicadores }     from './tools/indicadores.js';
+import { escenarioTools,      ejecutarEscenarios }      from './tools/escenarios.js';
+import { contabilidadTools,   ejecutarContabilidad }    from './tools/contabilidad.js';
 import { construirMensajesCFO }                   from './prompts/cfo-system.js';
 import { cerrarConexiones }                       from './db.js';
 
@@ -32,10 +33,11 @@ server.prompt(
 
 // ── Tools: discovery, multidb, indicadores, escenarios ───────────
 const allGroups = [
-  { tools: discoveryTools,   handler: ejecutarDiscovery   },
-  { tools: multidbTools,     handler: ejecutarMultidb     },
-  { tools: indicadoresTools, handler: ejecutarIndicadores },
-  { tools: escenarioTools,   handler: ejecutarEscenarios  },
+  { tools: discoveryTools,    handler: ejecutarDiscovery    },
+  { tools: multidbTools,      handler: ejecutarMultidb      },
+  { tools: contabilidadTools, handler: ejecutarContabilidad },
+  { tools: indicadoresTools,  handler: ejecutarIndicadores  },
+  { tools: escenarioTools,    handler: ejecutarEscenarios   },
 ];
 
 for (const { tools, handler } of allGroups) {

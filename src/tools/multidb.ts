@@ -126,9 +126,8 @@ export async function ejecutarMultidb(name: string, args: any): Promise<string> 
     // Descubrir qué agencias tienen este módulo/año en el servidor
     const masterPool = await getPool();
     const dbs = await masterPool.request().query(`
-      SELECT name FROM sys.databases
+      SELECT name FROM master..sysdatabases
       WHERE name LIKE '${modulo}%${anio}'
-        AND state_desc = 'ONLINE'
     `);
 
     const resultados: any[] = [];
