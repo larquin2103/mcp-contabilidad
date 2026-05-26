@@ -23,16 +23,6 @@ function buildConnectionString(database: string): string {
   );
 }
 
-const POOL_OPTIONS: Pick<sql.config, 'connectionTimeout' | 'requestTimeout' | 'pool'> = {
-  connectionTimeout: 15000,
-  requestTimeout:    30000,
-  pool: {
-    max:               10,
-    min:               0,
-    idleTimeoutMillis: 30000,
-  },
-};
-
 // ── Pool cache — una entrada por BD ──────────────────────────────
 const pools = new Map<string, sql.ConnectionPool>();
 
@@ -41,10 +31,21 @@ export async function getPool(database = 'master'): Promise<sql.ConnectionPool> 
   if (existing?.connected) return existing;
   if (existing) pools.delete(database);   // reconectar si se cayó
 
-  const pool = await new sql.ConnectionPool({
-    ...POOL_OPTIONS,
-    connectionString: buildConnectionString(database),
-  }).connect();
+  // msnodesqlv8 acepta connectionString en lugar del config estándar de mssql.
+  // El tipo sql.config no declara connectionString, por eso se usa any.
+  const config: any = {
+    driver:            'msnodesqlv8',
+    connectionString:  buildConnectionString(database),
+    connectionTimeout: 15000,
+    requestTimeout:    30000,
+    pool: {
+      max:               10,
+      min:               0,
+      idleTimeoutMillis: 30000,
+    },
+  };
+
+  const pool = await new sql.ConnectionPool(config).connect();
 
   pools.set(database, pool);
   return pool;
