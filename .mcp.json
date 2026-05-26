@@ -1,0 +1,14 @@
+{
+  "mcpServers": {
+    "contabilidad": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["tsx", "./src/index.ts"],
+      "env": {
+        "DB_SERVER": "192.168.7.70",
+        "DB_USER": "sa",
+        "DB_PASSWORD": "swift"
+      }
+    }
+  }
+}
