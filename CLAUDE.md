@@ -40,6 +40,49 @@ El código de cuenta tiene 3–4 dígitos. El primer dígito determina el grupo:
 **Naturaleza**: `D` = saldo normal deudor (aumenta con Débito), `A` = saldo normal
 acreedor (aumenta con Crédito). Este campo está en `[Clasificador de Cuentas_1]`.
 
+### FACTURA_ENC — reglas de uso (módulo Fact)
+
+La tabla `FACTURA_ENC` mezcla dos tipos de documento:
+
+| `CODIGO_TIPOFACTURA` | Significado | ¿Sumar? |
+|---|---|---|
+| `'FC'` | Factura real | ✅ SÍ |
+| `'PF'` | Prefactura   | ❌ NUNCA — genera doble conteo |
+
+**Filtro de oro** (validado: pasa de 3.09 M inflado a 1.20 M real):
+```sql
+WHERE CODIGO_TIPOFACTURA = 'FC' AND Cancelada = 0
+```
+
+Columnas clave de `FACTURA_ENC`:
+
+| Columna | Tipo | Notas |
+|---|---|---|
+| `CODIGO_TIPOFACTURA` | char | `'FC'` = real, `'PF'` = prefactura |
+| `Cancelada` | bit | `= 0` exacto (sin ISNULL — no hay NULLs en producción) |
+| `TOTAL_MN` | decimal | Importe en CUP |
+| `PER` | char(2) | Período `'01'`..`'12'` |
+| `FECHA_DOC` | datetime | Fecha del documento |
+| `Contabilizada` | bit | **NO fiable** — siempre falsa; el sistema contabiliza por asiento resumen mensual, no por factura |
+
+**Para conciliar Fact con Conta**: comparar `SUM(TOTAL_MN)` donde FC + Cancelada=0 contra `SUM([Crédito])` de cuentas **901/903** del Mayor. Brecha < 15 % es normal por timing.
+
+---
+
+### Cuentas de resultado — lógica de cierre
+
+Las cuentas **900/901/902/903** acumulan resultados durante el ejercicio y se **cierran contra 999** al final del período:
+- Saldo final **= 0** → cierre correcto, no es un error ni datos faltantes
+- Para ver ventas del período: usar `SUM([Crédito])` de **901/903** (tool `ventas_periodo`), **no** el saldo neto de la cuenta
+
+**Subcuentas con descripción idéntica** no son duplicados. Ejemplo real:
+- `901·00000` → "VENTAS DESTINO ESTADO"
+- `901·10010` → "VENTAS DESTINO ESTADO"
+
+Son subcuentas distintas del plan de cuentas. Usar `balance_saldos` con `agrupar_por='subcuenta'` para distinguirlas, o `agrupar_por='cuenta'` para consolidar. **Nunca eliminar filas para "quitar duplicados"** — rompería el cuadre de la partida doble.
+
+---
+
 ### Par 604 / 135 — lógica clave de ventas a crédito
 
 El par **604/135** es el patrón doble que produce una venta de servicios/mercancías
@@ -294,19 +337,26 @@ Las tools de KPIs y escenarios reciben datos numéricos ya extraídos de la BD.
 ## Flujo típico de análisis contable
 
 ```
-1. listar_bases_datos          → identifica ContaCAMA2025, ContaANAV2025, etc.
-2. balance_saldos(base_datos)  → saldos globales + verificación de cuadre
-3. estado_situacion(base_datos)→ balance general por grupos 1-7
-4. saldo_cuenta(base_datos, '604') + saldo_cuenta(base_datos, '135')
-                               → verificar par 604/135, calcular margen
-5. comparar_periodos(base_datos, 0, 6)
-                               → evolución apertura → junio
-6. kpi_completo(...)           → calcular KPIs con los valores extraídos
-7. escenario_*(...)            → modelar hipótesis
+1. listar_bases_datos                          → identifica ContaCAMA2025, FactCAMA2025, etc.
+2. balance_saldos(ContaCAMA2025)               → saldos globales + cuadre (debe ser true)
+3. estado_situacion(ContaCAMA2025)             → balance por grupos 1-7
+4. ventas_periodo(ContaCAMA2025)               → SUM(Crédito) 901/903 (ventas devengadas)
+5. facturacion_real(FactCAMA2025)              → SUM(TOTAL_MN) FC+Cancelada=0 (facturado real)
+6. conciliacion_fact_conta(FactCAMA2025, ContaCAMA2025)
+                                               → desfase <15%: normal; >30%: investigar
+7. saldo_cuenta(ContaCAMA2025, '604')
+   + saldo_cuenta(ContaCAMA2025, '135')        → par 604/135, margen bruto
+8. comparar_periodos(ContaCAMA2025, 0, 6)      → evolución apertura → junio
+9. kpi_completo(...)                           → KPIs con valores extraídos
+10. escenario_*(...)                           → modelar hipótesis
 ```
 
-Para comparar entre agencias o años: llamar las tools contables dos veces con
-`base_datos` diferentes (`ContaCAMA2025` vs `ContaANAV2025`, o 2025 vs 2026).
+**Verificaciones de integridad antes de analizar:**
+- `balance_saldos` → `cuadrado: true` — si false, detener e investigar
+- `desglose_facturacion` → confirmar magnitud de PF excluidas (~57% es normal)
+- Cuentas 901/903 con saldo 0 → cierre correcto, usar `ventas_periodo` para el crédito acumulado
+
+Para comparar entre agencias o años: llamar las tools dos veces con `base_datos` diferentes.
 
 ---
 
@@ -403,8 +453,12 @@ En desarrollo con tsx:
 | `src/engine/calculadora.ts`   | ✅ completo | KPIs puros, semáforos                 |
 | `src/engine/modelador.ts`     | ✅ completo | 5 escenarios financieros              |
 | `src/prompts/cfo-system.ts`   | ✅ completo | CFO virtual + benchmarks sector       |
-| `src/tools/contabilidad.ts`   | ✅ completo | balance_saldos, saldo_cuenta,         |
-|                               |             | estado_situacion, comparar_periodos   |
+| `src/tools/contabilidad.ts`   | ✅ completo | balance_saldos (agrupar_por cuenta\|subcuenta), |
+|                               |             | saldo_cuenta, estado_situacion,       |
+|                               |             | comparar_periodos, ventas_periodo     |
+| `src/tools/facturacion.ts`    | ✅ completo | facturacion_real (filtro FC+Cancelada=0), |
+|                               |             | desglose_facturacion (FC/PF/cancel.), |
+|                               |             | conciliacion_fact_conta (901/903)     |
 | `src/tools/indicadores.ts`    | ✅ completo | 6 tools KPI                           |
 | `src/tools/escenarios.ts`     | ✅ completo | 5 tools escenarios                    |
 | `src/tools/discovery.ts`      | ✅ completo | SS2000: sysobjects, sysindexes        |
