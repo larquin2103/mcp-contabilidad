@@ -1,17 +1,19 @@
 import { getPool } from '../db.js';
 
-// ── REGLA CRÍTICA ─────────────────────────────────────────────────
-// FACTURA_ENC mezcla facturas reales (FC) y prefacturas (PF).
-// Filtrar SIEMPRE con FILTRO_REAL para evitar doble conteo.
-// Cancelada = 1 también excluye facturas anuladas.
-const FILTRO_REAL = `CODIGO_TIPOFACTURA = 'FC' AND ISNULL(Cancelada, 0) = 0`;
+// ── FILTRO DE ORO — validado contra datos reales (FactCAMA) ──────
+// Con solo FC + Cancelada=0 el total pasa de 3.09M (inflado) a 1.20M real.
+// Las PF (prefacturas) representan ~57% del importe total: NUNCA sumarlas.
+// Cancelada = 0 es comparación exacta — la columna no tiene NULLs en producción.
+// La columna Contabilizada NO es fiable: el sistema contabiliza por asiento
+// resumen mensual, no por factura. Para conciliar, usar cuentas 901/903 del Mayor.
+const FILTRO_REAL = `CODIGO_TIPOFACTURA = 'FC' AND Cancelada = 0`;
 
 export const facturacionTools = [
   {
-    name: 'resumen_facturacion',
-    description: `Facturación real de FACTURA_ENC agrupada por período.
-SOLO incluye CODIGO_TIPOFACTURA='FC' (facturas reales).
-EXCLUYE prefacturas PF y canceladas — incluirlas genera doble conteo.
+    name: 'facturacion_real',
+    description: `Facturación real de FACTURA_ENC, período a período.
+SOLO CODIGO_TIPOFACTURA='FC' con Cancelada=0 (facturas reales vigentes).
+Las PF (prefacturas) inflan el resultado ~57% — están excluidas siempre.
 Importe en TOTAL_MN (CUP). Período en columna PER ('01'=enero...'12'=dic).
 Requiere BD Fact: FactCAMA2025, FactANAV2025, etc.`,
     inputSchema: {
@@ -30,13 +32,32 @@ Requiere BD Fact: FactCAMA2025, FactANAV2025, etc.`,
     },
   },
   {
+    name: 'desglose_facturacion',
+    description: `Desglose de FACTURA_ENC por tipo (FC/PF) y estado de cancelación.
+Muestra exactamente cuánto se incluye vs excluye en el filtro FC+no cancelada.
+Usar antes de analizar para confirmar la magnitud del doble conteo por PF.`,
+    inputSchema: {
+      type: 'object',
+      properties: {
+        base_datos: {
+          type: 'string',
+          description: 'BD del módulo Fact. Ej: FactCAMA2025',
+        },
+        periodo: {
+          type: 'string',
+          description: "Período opcional '01'..'12'.",
+        },
+      },
+      required: ['base_datos'],
+    },
+  },
+  {
     name: 'conciliacion_fact_conta',
-    description: `Conciliación entre facturación real y contabilización.
-Compara el total FC no cancelado (FACTURA_ENC) con el total marcado
-como Contabilizada=1. La brecha son facturas reales aún no contabilizadas.
-Con base_datos_conta cruza además contra los créditos de cuentas 7xx
-del Mayor para detectar asientos sin respaldo en facturación.
-Solo procesa CODIGO_TIPOFACTURA='FC' y excluye canceladas.`,
+    description: `Conciliación entre facturación real (FC) y ventas contabilizadas.
+Compara SUM(TOTAL_MN) de FC+Cancelada=0 en FACTURA_ENC contra
+SUM(Crédito) de cuentas 901/903 del Mayor. Desfase <15% es NORMAL
+(timing: las facturas se emiten antes del cierre contable).
+No usa la columna Contabilizada — no es fiable (contabilización por asiento mensual).`,
     inputSchema: {
       type: 'object',
       properties: {
@@ -46,177 +67,180 @@ Solo procesa CODIGO_TIPOFACTURA='FC' y excluye canceladas.`,
         },
         base_datos_conta: {
           type: 'string',
-          description: 'BD de Contabilidad (opcional). Ej: ContaCAMA2025',
+          description: 'BD de Contabilidad. Ej: ContaCAMA2025',
         },
         periodo: {
           type: 'string',
           description: "Filtrar por período '01'..'12'. Si se omite, todos.",
         },
       },
-      required: ['base_datos_fact'],
+      required: ['base_datos_fact', 'base_datos_conta'],
     },
   },
 ];
 
 export async function ejecutarFacturacion(name: string, args: any): Promise<string> {
 
-  // ── resumen_facturacion ─────────────────────────────────────────
-  if (name === 'resumen_facturacion') {
+  // ── facturacion_real ────────────────────────────────────────────
+  if (name === 'facturacion_real') {
     const { base_datos, periodo } = args;
     const pool = await getPool(base_datos);
-
-    const req = pool.request();
+    const req  = pool.request();
     const filtroPer = periodo ? `AND PER = @periodo` : '';
     if (periodo) req.input('periodo', periodo);
 
     const result = await req.query(`
       SELECT
-          PER                                                                  AS Periodo,
-          COUNT(*)                                                             AS NumFacturas,
-          SUM(TOTAL_MN)                                                        AS TotalFacturado,
-          MIN(FECHA_DOC)                                                       AS PrimeraFecha,
-          MAX(FECHA_DOC)                                                       AS UltimaFecha,
-          SUM(CASE WHEN Contabilizada = 1           THEN 1       ELSE 0 END)  AS NumContabilizadas,
-          SUM(CASE WHEN Contabilizada = 1           THEN TOTAL_MN ELSE 0 END) AS TotalContabilizado,
-          SUM(CASE WHEN ISNULL(Contabilizada,0) = 0 THEN 1       ELSE 0 END)  AS NumPendientes,
-          SUM(CASE WHEN ISNULL(Contabilizada,0) = 0 THEN TOTAL_MN ELSE 0 END) AS TotalPendiente
+          PER            AS Periodo,
+          COUNT(*)       AS NumFacturas,
+          SUM(TOTAL_MN)  AS TotalFacturado,
+          MIN(FECHA_DOC) AS PrimeraFecha,
+          MAX(FECHA_DOC) AS UltimaFecha
       FROM FACTURA_ENC
       WHERE ${FILTRO_REAL} ${filtroPer}
       GROUP BY PER
       ORDER BY PER
     `);
 
-    const rows = result.recordset;
-    const totFact  = rows.reduce((s: number, r: any) => s + (r.TotalFacturado    ?? 0), 0);
-    const totConta = rows.reduce((s: number, r: any) => s + (r.TotalContabilizado ?? 0), 0);
-    const totPend  = rows.reduce((s: number, r: any) => s + (r.TotalPendiente    ?? 0), 0);
+    const rows    = result.recordset;
+    const total   = rows.reduce((s: number, r: any) => s + (r.TotalFacturado ?? 0), 0);
+    const nFact   = rows.reduce((s: number, r: any) => s + (r.NumFacturas    ?? 0), 0);
 
     return JSON.stringify({
       base_datos,
-      nota:           'Solo facturas FC no canceladas — prefacturas PF excluidas',
+      filtro:         "CODIGO_TIPOFACTURA='FC' AND Cancelada=0 — prefacturas PF excluidas",
       periodo_filtro: periodo ?? 'todos',
       total_general: {
-        total_facturado:     totFact,
-        total_contabilizado: totConta,
-        total_pendiente:     totPend,
-        pct_contabilizado:   totFact > 0
-          ? Math.round(totConta / totFact * 10000) / 100
-          : null,
+        num_facturas:    nFact,
+        total_facturado: total,
       },
       por_periodo: rows,
+    }, null, 2);
+  }
+
+  // ── desglose_facturacion ────────────────────────────────────────
+  if (name === 'desglose_facturacion') {
+    const { base_datos, periodo } = args;
+    const pool = await getPool(base_datos);
+    const req  = pool.request();
+    const filtroPer = periodo ? `AND PER = @periodo` : '';
+    if (periodo) req.input('periodo', periodo);
+
+    const result = await req.query(`
+      SELECT
+          CODIGO_TIPOFACTURA AS TipoFactura,
+          Cancelada,
+          COUNT(*)           AS NumDocumentos,
+          SUM(TOTAL_MN)      AS TotalMN
+      FROM FACTURA_ENC
+      WHERE 1=1 ${filtroPer}
+      GROUP BY CODIGO_TIPOFACTURA, Cancelada
+      ORDER BY CODIGO_TIPOFACTURA, Cancelada
+    `);
+
+    let totalReal = 0, totalPF = 0, totalCanceladas = 0, totalTodo = 0;
+    for (const r of result.recordset) {
+      const imp = r.TotalMN ?? 0;
+      totalTodo += imp;
+      if (r.TipoFactura === 'FC' && r.Cancelada === 0) totalReal       += imp;
+      else if (r.TipoFactura === 'PF')                  totalPF         += imp;
+      else                                              totalCanceladas += imp;
+    }
+
+    return JSON.stringify({
+      base_datos,
+      periodo_filtro: periodo ?? 'todos',
+      resumen: {
+        total_todos_documentos:    totalTodo,
+        total_real_FC_vigentes:    totalReal,
+        excluido_prefacturas_PF:   totalPF,
+        excluido_canceladas:       totalCanceladas,
+        pct_inflacion_si_incluye_PF: totalReal > 0
+          ? Math.round(totalPF / totalReal * 10000) / 100
+          : null,
+        nota: "Solo 'FC' + Cancelada=0 es la cifra financiera correcta",
+      },
+      detalle_por_tipo: result.recordset,
     }, null, 2);
   }
 
   // ── conciliacion_fact_conta ─────────────────────────────────────
   if (name === 'conciliacion_fact_conta') {
     const { base_datos_fact, base_datos_conta, periodo } = args;
-    const factPool = await getPool(base_datos_fact);
+    const factPool  = await getPool(base_datos_fact);
+    const contaPool = await getPool(base_datos_conta);
 
-    // PER en Fact es string '01'..'12'; Período en Mayor es int 1..12
+    // PER en Fact = string '01'..'12'; Período en Mayor = int 1..12
     const periodoInt: number | null = periodo ? parseInt(periodo, 10) : null;
-    const filtroPer = periodo ? `AND PER = @periodo` : '';
+    const filtroPer   = periodo        ? `AND PER = @periodo`            : '';
+    const filtroConta = periodoInt !== null ? `AND m.Período = @periodo_int` : '';
 
-    // ── Resumen por período ───────────────────────────────────────
-    const reqRes = factPool.request();
-    if (periodo) reqRes.input('periodo', periodo);
-
-    const resumen = await reqRes.query(`
+    // Facturación real (Fact)
+    const reqFact = factPool.request();
+    if (periodo) reqFact.input('periodo', periodo);
+    const rFact = await reqFact.query(`
       SELECT
-          PER                                                                  AS Periodo,
-          COUNT(*)                                                             AS TotalFC,
-          SUM(TOTAL_MN)                                                        AS TotalFacturado,
-          SUM(CASE WHEN Contabilizada = 1           THEN 1       ELSE 0 END)  AS ContabilizadasN,
-          SUM(CASE WHEN Contabilizada = 1           THEN TOTAL_MN ELSE 0 END) AS TotalContabilizado,
-          SUM(CASE WHEN ISNULL(Contabilizada,0) = 0 THEN 1       ELSE 0 END)  AS PendientesN,
-          SUM(CASE WHEN ISNULL(Contabilizada,0) = 0 THEN TOTAL_MN ELSE 0 END) AS TotalPendiente
+          PER           AS Periodo,
+          COUNT(*)      AS NumFC,
+          SUM(TOTAL_MN) AS TotalFacturado
       FROM FACTURA_ENC
       WHERE ${FILTRO_REAL} ${filtroPer}
       GROUP BY PER
       ORDER BY PER
     `);
 
-    // ── Detalle de pendientes (FC no canceladas, no contabilizadas) ──
-    const reqPend = factPool.request();
-    if (periodo) reqPend.input('periodo', periodo);
-
-    const pendientes = await reqPend.query(`
-      SELECT TOP 200 *
-      FROM FACTURA_ENC
-      WHERE ${FILTRO_REAL}
-        AND ISNULL(Contabilizada, 0) = 0
-        ${filtroPer}
-      ORDER BY PER, FECHA_DOC
+    // Ventas contabilizadas — crédito de 901/903 en Mayor (Conta)
+    const reqConta = contaPool.request();
+    if (periodoInt !== null) reqConta.input('periodo_int', periodoInt);
+    const rConta = await reqConta.query(`
+      SELECT
+          m.Cuenta,
+          m.SubCuenta,
+          MIN(cc.[Descripción]) AS Nombre,
+          m.Período,
+          SUM(m.[Crédito])      AS TotalCredito
+      FROM [Mayor] m
+      JOIN [Clasificador de Cuentas_1] cc
+          ON cc.Cuenta = m.Cuenta AND cc.SubCuenta = m.SubCuenta
+      WHERE m.Cuenta IN ('901', '903')
+        ${filtroConta}
+      GROUP BY m.Cuenta, m.SubCuenta, m.Período
+      ORDER BY m.Cuenta, m.SubCuenta, m.Período
     `);
 
-    const rows   = resumen.recordset;
-    const totFact  = rows.reduce((s: number, r: any) => s + (r.TotalFacturado    ?? 0), 0);
-    const totConta = rows.reduce((s: number, r: any) => s + (r.TotalContabilizado ?? 0), 0);
-    const totPend  = rows.reduce((s: number, r: any) => s + (r.TotalPendiente    ?? 0), 0);
+    const totFacturado     = rFact.recordset.reduce((s: number, r: any) => s + (r.TotalFacturado ?? 0), 0);
+    const totContabilizado = rConta.recordset.reduce((s: number, r: any) => s + (r.TotalCredito  ?? 0), 0);
+    const diferencia       = totFacturado - totContabilizado;
+    const pctDesfase       = totFacturado > 0
+      ? Math.round(Math.abs(diferencia) / totFacturado * 10000) / 100
+      : null;
 
-    const resultado: any = {
+    const alertaConciliacion =
+      pctDesfase === null ? 'sin datos' :
+      pctDesfase <= 15    ? '✅ normal — desfase ≤ 15% es habitual por timing de registro' :
+      pctDesfase <= 30    ? '🟡 revisar — desfase entre 15% y 30%, verificar cierres pendientes' :
+                            '🔴 investigar — desfase > 30%, puede haber facturas sin contabilizar o asientos incorrectos';
+
+    return JSON.stringify({
       base_datos_fact,
+      base_datos_conta,
       periodo_filtro: periodo ?? 'todos',
-      nota: 'Solo facturas FC no canceladas — prefacturas PF excluidas',
+      nota_metodologia: [
+        "Facturado: SUM(TOTAL_MN) de FACTURA_ENC donde FC + Cancelada=0",
+        "Contabilizado: SUM(Crédito) de Mayor cuentas 901/903",
+        "Contabilizada en FACTURA_ENC NO se usa — no es fiable (asiento mensual)",
+        "Desfase <15% es NORMAL por timing — facturas emitidas antes del cierre contable",
+      ],
       total_general: {
-        total_facturado:     totFact,
-        total_contabilizado: totConta,
-        brecha_pendiente:    totPend,
-        pct_contabilizado:   totFact > 0
-          ? Math.round(totConta / totFact * 10000) / 100
-          : null,
+        total_facturado:              totFacturado,
+        total_contabilizado_901_903:  totContabilizado,
+        diferencia_fact_minus_conta:  diferencia,
+        pct_desfase:                  pctDesfase,
+        alerta_conciliacion:          alertaConciliacion,
       },
-      por_periodo: rows,
-      pendientes_de_contabilizar: {
-        total:   pendientes.recordset.length,
-        nota_limite: pendientes.recordset.length === 200
-          ? 'Resultado limitado a 200 filas — usar periodo para acotar'
-          : null,
-        detalle: pendientes.recordset,
-      },
-    };
-
-    // ── Cruce con Mayor (cuentas 7xx) si se provee base_datos_conta ──
-    if (base_datos_conta) {
-      const contaPool = await getPool(base_datos_conta);
-      const reqConta  = contaPool.request();
-      const filtroConta = periodoInt !== null
-        ? `AND m.Período = @periodo_int`
-        : '';
-      if (periodoInt !== null) reqConta.input('periodo_int', periodoInt);
-
-      const saldo7xx = await reqConta.query(`
-        SELECT
-            m.Cuenta,
-            MIN(cc.[Descripción]) AS Nombre,
-            SUM(m.[Débito])       AS TotalDebito,
-            SUM(m.[Crédito])      AS TotalCredito
-        FROM [Mayor] m
-        JOIN [Clasificador de Cuentas_1] cc
-            ON cc.Cuenta = m.Cuenta AND cc.SubCuenta = m.SubCuenta
-        WHERE LEFT(m.Cuenta, 1) = '7'
-          ${filtroConta}
-        GROUP BY m.Cuenta
-        ORDER BY m.Cuenta
-      `);
-
-      const totalCredito7xx = saldo7xx.recordset.reduce(
-        (s: number, r: any) => s + (r.TotalCredito ?? 0), 0
-      );
-
-      resultado.cruce_conta = {
-        base_datos_conta,
-        periodo_conta: periodoInt !== null ? periodoInt : 'todos',
-        cuentas_7xx:          saldo7xx.recordset,
-        total_credito_7xx:    totalCredito7xx,
-        // diferencia positiva: Mayor contiene más ingresos que lo facturado+contabilizado
-        diferencia_mayor_vs_fc_contabilizado: totalCredito7xx - totConta,
-        nota: 'Diferencia ≈ 0 indica conciliación perfecta. '
-            + 'Diferencia positiva = asientos en Mayor sin factura FC. '
-            + 'Diferencia negativa = facturas FC contabilizadas que no llegaron al Mayor.',
-      };
-    }
-
-    return JSON.stringify(resultado, null, 2);
+      facturado_por_periodo:  rFact.recordset,
+      contabilizado_901_903:  rConta.recordset,
+    }, null, 2);
   }
 
   throw new Error(`Tool desconocida: ${name}`);

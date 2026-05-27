@@ -65,6 +65,23 @@ Incluye resumen de totales por sección para verificar la ecuación patrimonial.
     },
   },
   {
+    name: 'ventas_periodo',
+    description: `Ventas devengadas: SUM(Crédito) de cuentas 901/903 del Mayor.
+NOTA CRÍTICA: las cuentas 900/901/902/903 se cierran contra 999 al fin del ejercicio.
+Saldo CERO en esas cuentas = cierre CORRECTO, no es un error ni datos faltantes.
+Para ver las ventas del período usar el crédito acumulado de 901/903 (este tool),
+no el saldo final de la cuenta (que queda en cero tras el cierre).
+Requiere BD Conta: ContaCAMA2025, ContaANAV2025, etc.`,
+    inputSchema: {
+      type: 'object',
+      properties: {
+        base_datos: { type: 'string', description: 'Ej: ContaCAMA2025' },
+        periodo:    { type: 'number', description: 'Período 1-12. Si se omite, suma todos.' },
+      },
+      required: ['base_datos'],
+    },
+  },
+  {
     name: 'comparar_periodos',
     description: `Evolución de saldos acumulados entre dos períodos del mismo año.
 Período 0 = apertura, 1-12 = enero–diciembre.
@@ -295,6 +312,53 @@ export async function ejecutarContabilidad(name: string, args: any): Promise<str
       periodo_b,
       total_cuentas: result.recordset.length,
       comparativa:   result.recordset,
+    }, null, 2);
+  }
+
+  // ── ventas_periodo ──────────────────────────────────────────────
+  // SUM(Crédito) de 901/903 = ventas devengadas del período.
+  // Saldo neto (Crédito-Débito) incluye el asiento de cierre contra 999;
+  // si el ejercicio cerró, saldo final = 0 — eso es CORRECTO.
+  if (name === 'ventas_periodo') {
+    const { base_datos, periodo } = args;
+    const pool = await getPool(base_datos);
+    const req  = pool.request();
+    const filtroPer = periodo != null ? `AND m.Período = @periodo` : '';
+    if (periodo != null) req.input('periodo', periodo);
+
+    const result = await req.query(`
+      SELECT
+          m.Cuenta,
+          m.SubCuenta,
+          MIN(cc.[Descripción]) AS Nombre,
+          m.Período,
+          SUM(m.[Débito])       AS TotalDebito,
+          SUM(m.[Crédito])      AS TotalCredito
+      FROM [Mayor] m
+      JOIN [Clasificador de Cuentas_1] cc
+          ON cc.Cuenta = m.Cuenta AND cc.SubCuenta = m.SubCuenta
+      WHERE m.Cuenta IN ('901', '903')
+        ${filtroPer}
+      GROUP BY m.Cuenta, m.SubCuenta, m.Período
+      ORDER BY m.Cuenta, m.SubCuenta, m.Período
+    `);
+
+    const totCredito = result.recordset.reduce((s: number, r: any) => s + (r.TotalCredito ?? 0), 0);
+    const totDebito  = result.recordset.reduce((s: number, r: any) => s + (r.TotalDebito  ?? 0), 0);
+
+    return JSON.stringify({
+      base_datos,
+      periodo_filtro: periodo ?? 'todos',
+      nota: [
+        'SUM(Crédito) de 901/903 = ventas devengadas (antes del cierre)',
+        'Saldo neto = Crédito - Débito; incluye asiento de cierre contra 999',
+        'Saldo neto = 0 tras cierre del ejercicio — es correcto, no es un error',
+        'Para conciliar con Fact: usar conciliacion_fact_conta',
+      ],
+      total_credito_ventas: totCredito,
+      total_debito_ajustes: totDebito,
+      saldo_neto:           totCredito - totDebito,
+      detalle: result.recordset,
     }, null, 2);
   }
 
