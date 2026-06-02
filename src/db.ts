@@ -1,43 +1,92 @@
 import sql from 'mssql/msnodesqlv8.js';
 import dotenv from 'dotenv';
+import { readFileSync } from 'fs';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 dotenv.config({ path: join(__dirname, '../config/.env') });
 
-// ── Connection string por BD ──────────────────────────────────────
-// SQL Server 2000 via ODBC / Native Client 10.0. Cada pool
-// lleva su propia BD en el connection string; no se usa USE [db].
+// ── Configuración de servidores ───────────────────────────────────
+// Cada servidor tiene su propio bloque en el .env:
+//   DB_SERVER_PRINCIPAL, DB_USER_PRINCIPAL, DB_PASSWORD_PRINCIPAL
+//   DB_SERVER_AG,        DB_USER_AG,        DB_PASSWORD_AG
+//   DB_SERVER_FEF,       DB_USER_FEF,       DB_PASSWORD_FEF
 
-function buildConnectionString(database: string): string {
-  const server   = process.env.DB_SERVER   ?? '127.0.0.1';
-  const user     = process.env.DB_USER     ?? 'sa';
-  const password = process.env.DB_PASSWORD ?? '';
+interface ServerConfig {
+  ip:       string;
+  usuario:  string;
+  password: string;
+}
+
+function leerConfigServidor(clave: string): ServerConfig {
+  const k = clave.toUpperCase();
+  return {
+    ip:       process.env[`DB_SERVER_${k}`]   ?? '127.0.0.1',
+    usuario:  process.env[`DB_USER_${k}`]     ?? 'sa',
+    password: process.env[`DB_PASSWORD_${k}`] ?? '',
+  };
+}
+
+// ── Mapa agencia → clave de servidor (desde agencias.json) ────────
+const agenciasCfg: Record<string, { servidor: string }> = (() => {
+  const raw = JSON.parse(
+    readFileSync(join(__dirname, '../config/agencias.json'), 'utf-8')
+  );
+  return raw.agencias ?? {};
+})();
+
+/** Resuelve la clave de servidor a partir del nombre de la BD. */
+export function resolverClaveServidor(database: string): string {
+  const upper = database.toUpperCase();
+  for (const [codigo, cfg] of Object.entries(agenciasCfg)) {
+    if (upper.includes(codigo.toUpperCase())) {
+      return cfg.servidor ?? 'principal';
+    }
+  }
+  return 'principal';
+}
+
+function buildConnectionString(database: string, srv: ServerConfig): string {
   return (
     `Driver={SQL Server Native Client 10.0};` +
-    `Server=${server};` +
+    `Server=${srv.ip};` +
     `Database=${database};` +
-    `UID=${user};` +
-    `PWD=${password};`
+    `UID=${srv.usuario};` +
+    `PWD=${srv.password};`
   );
 }
 
-// ── Pool cache — una entrada por BD ──────────────────────────────
+// ── Pool cache — clave = "claveServidor:bd" ───────────────────────
+// Incluir el servidor en la clave evita colisiones si dos servidores
+// tienen una BD con el mismo nombre.
 const pools = new Map<string, sql.ConnectionPool>();
 
-export async function getPool(database = 'master'): Promise<sql.ConnectionPool> {
-  const existing = pools.get(database);
+/**
+ * Devuelve (o crea) el pool para la BD indicada.
+ * @param database   Nombre de la BD (ej: "ContaCAMA2025", "AGConta2025")
+ * @param serverKey  Clave de servidor opcional; si se omite se infiere por agencia
+ */
+export async function getPool(
+  database  = 'master',
+  serverKey?: string,
+): Promise<sql.ConnectionPool> {
+  const claveServidor = serverKey ?? resolverClaveServidor(database);
+  const poolKey       = `${claveServidor}:${database}`;
+
+  const existing = pools.get(poolKey);
   if (existing?.connected) return existing;
-  if (existing) pools.delete(database);   // reconectar si se cayó
+  if (existing) pools.delete(poolKey);   // reconectar si se cayó
+
+  const srv = leerConfigServidor(claveServidor);
 
   // msnodesqlv8 acepta connectionString en lugar del config estándar de mssql.
   // El tipo sql.config no declara connectionString, por eso se usa any.
   const config: any = {
     driver:            'msnodesqlv8',
-    connectionString:  buildConnectionString(database),
-    connectionTimeout: 15000,
-    requestTimeout:    30000,
+    connectionString:  buildConnectionString(database, srv),
+    connectionTimeout: parseInt(process.env.DB_CONNECT_TIMEOUT ?? '15000', 10),
+    requestTimeout:    parseInt(process.env.DB_REQUEST_TIMEOUT  ?? '30000', 10),
     pool: {
       max:               10,
       min:               0,
@@ -46,17 +95,17 @@ export async function getPool(database = 'master'): Promise<sql.ConnectionPool> 
   };
 
   const pool = await new sql.ConnectionPool(config).connect();
-
-  pools.set(database, pool);
+  pools.set(poolKey, pool);
   return pool;
 }
 
-// ── Verificar si una BD existe en el servidor ─────────────────────
-// Usa master..sysdatabases (SQL Server 2000 compatible).
+// ── Verificar si una BD existe en su servidor ─────────────────────
+// Conecta al master del mismo servidor donde viviría la BD consultada.
 export async function dbExiste(nombre: string): Promise<boolean> {
   try {
-    const master = await getPool('master');
-    const result = await master.request()
+    const claveServidor = resolverClaveServidor(nombre);
+    const pool = await getPool('master', claveServidor);
+    const result = await pool.request()
       .input('nombre', nombre)
       .query(`SELECT COUNT(1) AS existe FROM master..sysdatabases WHERE name = @nombre`);
     return result.recordset[0].existe === 1;

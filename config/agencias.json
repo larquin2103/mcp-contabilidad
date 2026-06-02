@@ -1,11 +1,17 @@
 {
+  "servidores": {
+    "principal": { "descripcion": "Servidor principal (CAMA, ANAV, DIR, UBL, UDCT)" },
+    "ag":        { "descripcion": "Servidor Gráfica" },
+    "fef":       { "descripcion": "Servidor Fábrica de Envases Flexibles" }
+  },
   "agencias": {
-    "CAMA":  { "nombre": "Camaguey",  "activa": true },
-    "ANAV":  { "nombre": "ANAV",      "activa": true },
-    "DIR":   { "nombre": "Dirección", "activa": true },
-    "UBL":   { "nombre": "UBL",       "activa": true },
-    "UDCT":  { "nombre": "UDCT",      "activa": true },
-    "FEF":   { "nombre": "FEF",       "activa": true }
+    "CAMA":  { "nombre": "Camaguey",                      "activa": true, "servidor": "principal" },
+    "ANAV":  { "nombre": "ANAV",                          "activa": true, "servidor": "principal" },
+    "DIR":   { "nombre": "Dirección",                     "activa": true, "servidor": "principal" },
+    "UBL":   { "nombre": "UBL",                           "activa": true, "servidor": "principal" },
+    "UDCT":  { "nombre": "UDCT",                          "activa": true, "servidor": "principal" },
+    "FEF":   { "nombre": "Fábrica de Envases Flexibles",  "activa": true, "servidor": "fef"       },
+    "AG":    { "nombre": "Gráfica",                       "activa": true, "servidor": "ag"        }
   },
   "modulos": {
     "Conta": { "nombre": "Contabilidad",       "financiero": true,  "prioridad": 1, "descripcion": "Contabilidad general, asientos y estados financieros" },
