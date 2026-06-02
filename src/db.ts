@@ -9,12 +9,13 @@ dotenv.config({ path: join(__dirname, '../config/.env') });
 
 // ── Configuración de servidores ───────────────────────────────────
 // Cada servidor tiene su propio bloque en el .env:
-//   DB_SERVER_PRINCIPAL, DB_USER_PRINCIPAL, DB_PASSWORD_PRINCIPAL
-//   DB_SERVER_AG,        DB_USER_AG,        DB_PASSWORD_AG
-//   DB_SERVER_FEF,       DB_USER_FEF,       DB_PASSWORD_FEF
+//   DB_SERVER_PRINCIPAL, DB_PORT_PRINCIPAL, DB_USER_PRINCIPAL, DB_PASSWORD_PRINCIPAL
+//   DB_SERVER_AG,        DB_PORT_AG,        DB_USER_AG,        DB_PASSWORD_AG
+//   DB_SERVER_FEF,       DB_PORT_FEF,       DB_USER_FEF,       DB_PASSWORD_FEF
 
 interface ServerConfig {
   ip:       string;
+  port:     string;
   usuario:  string;
   password: string;
 }
@@ -23,6 +24,7 @@ function leerConfigServidor(clave: string): ServerConfig {
   const k = clave.toUpperCase();
   return {
     ip:       process.env[`DB_SERVER_${k}`]   ?? '127.0.0.1',
+    port:     process.env[`DB_PORT_${k}`]     ?? '1433',
     usuario:  process.env[`DB_USER_${k}`]     ?? 'sa',
     password: process.env[`DB_PASSWORD_${k}`] ?? '',
   };
@@ -50,7 +52,7 @@ export function resolverClaveServidor(database: string): string {
 function buildConnectionString(database: string, srv: ServerConfig): string {
   return (
     `Driver={SQL Server Native Client 10.0};` +
-    `Server=${srv.ip};` +
+    `Server=${srv.ip},${srv.port};` +
     `Database=${database};` +
     `UID=${srv.usuario};` +
     `PWD=${srv.password};`
