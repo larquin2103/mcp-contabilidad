@@ -50,9 +50,12 @@ export function resolverClaveServidor(database: string): string {
 }
 
 function buildConnectionString(database: string, srv: ServerConfig): string {
+  // SQL Server 2000 acepta mejor la IP sola cuando es el puerto estándar.
+  // Solo se añade ,puerto si es diferente de 1433.
+  const serverStr = srv.port === '1433' ? srv.ip : `${srv.ip},${srv.port}`;
   return (
     `Driver={SQL Server Native Client 10.0};` +
-    `Server=${srv.ip},${srv.port};` +
+    `Server=${serverStr};` +
     `Database=${database};` +
     `UID=${srv.usuario};` +
     `PWD=${srv.password};`
