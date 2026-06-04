@@ -10,8 +10,12 @@
     "DIR":   { "nombre": "Dirección",                     "activa": true, "servidor": "principal" },
     "UBL":   { "nombre": "UBL",                           "activa": true, "servidor": "principal" },
     "UDCT":  { "nombre": "UDCT",                          "activa": true, "servidor": "principal" },
-    "FEF":   { "nombre": "Fábrica de Envases Flexibles",  "activa": true, "servidor": "fef"       },
-    "AG":    { "nombre": "Gráfica",                       "activa": true, "servidor": "ag"        }
+    "FEF":     { "nombre": "Fábrica de Envases Flexibles",  "activa": true, "servidor": "fef" },
+    "AG":      { "nombre": "Gráfica",                     "activa": true, "servidor": "ag"  },
+    "AEMA":    { "nombre": "AEMA",                        "activa": true, "servidor": "fef" },
+    "GEOCUBA": { "nombre": "GEOCUBA",                     "activa": true, "servidor": "fef" },
+    "GCC":     { "nombre": "GCC",                         "activa": true, "servidor": "fef" },
+    "GCCSF":   { "nombre": "GCCSF",                       "activa": true, "servidor": "fef" }
   },
   "modulos": {
     "Conta": { "nombre": "Contabilidad",       "financiero": true,  "prioridad": 1, "descripcion": "Contabilidad general, asientos y estados financieros" },

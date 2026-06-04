@@ -1,5 +1,15 @@
-import { getPool }        from '../db.js';
+import { readFileSync }    from 'fs';
+import { join, dirname }   from 'path';
+import { fileURLToPath }   from 'url';
+import { getPool, resolverClaveServidor } from '../db.js';
 import { parsearNombreDB } from '../registry.js';
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const _agenciasCfg = JSON.parse(
+  readFileSync(join(__dirname, '../../config/agencias.json'), 'utf-8')
+);
+// Claves de servidor únicas definidas en agencias.json
+const CLAVES_SERVIDOR: string[] = Object.keys(_agenciasCfg.servidores ?? { principal: {} });
 
 export const discoveryTools = [
   {
@@ -47,18 +57,40 @@ export async function ejecutarDiscovery(name: string, args: any): Promise<string
   // ── listar_bases_datos ──────────────────────────────────────────
   // Conecta a master y consulta sysdatabases (SQL Server 2000).
   if (name === 'listar_bases_datos') {
-    const master = await getPool('master');
-    const result = await master.request().query(`
-      SELECT name, crdate AS create_date
-      FROM master..sysdatabases
-      WHERE name NOT IN ('master','tempdb','model','msdb')
-      ORDER BY name
-    `);
+    // Consulta todos los servidores configurados en paralelo
+    const resultados = await Promise.allSettled(
+      CLAVES_SERVIDOR.map(async (clave) => {
+        const master = await getPool('master', clave);
+        const res = await master.request().query(`
+          SELECT name FROM master..sysdatabases
+          WHERE name NOT IN ('master','tempdb','model','msdb')
+          ORDER BY name
+        `);
+        return { clave, dbs: res.recordset as { name: string }[] };
+      })
+    );
 
-    let dbs = result.recordset
-      .map((r: any) => ({ raw: r, info: parsearNombreDB(r.name) }))
-      .filter((r: any) => r.info !== null)
-      .map((r: any) => r.info!);
+    const todasLasBDs: string[] = [];
+    const erroresServidor: Record<string, string> = {};
+    for (let i = 0; i < resultados.length; i++) {
+      const r = resultados[i];
+      const clave = CLAVES_SERVIDOR[i];
+      if (r.status === 'fulfilled') {
+        // Solo incluir BDs cuya agencia pertenece a este servidor (evita duplicados
+        // cuando el servidor FEF replica bases de otros servidores como CAMA o AG).
+        const propias = r.value.dbs
+          .filter(x => resolverClaveServidor(x.name) === clave)
+          .map(x => x.name);
+        todasLasBDs.push(...propias);
+      } else {
+        erroresServidor[clave] = String(r.reason);
+      }
+    }
+
+    let dbs = todasLasBDs
+      .map(name => parsearNombreDB(name))
+      .filter(info => info !== null)
+      .map(info => info!);
 
     if (args.filtro_modulo)  dbs = dbs.filter((d: any) => d.modulo  === args.filtro_modulo);
     if (args.filtro_agencia) dbs = dbs.filter((d: any) => d.agencia === args.filtro_agencia);
@@ -71,7 +103,9 @@ export async function ejecutarDiscovery(name: string, args: any): Promise<string
       agrupado[db.moduloNombre][db.agenciaNombre].push(db.anio);
     }
 
-    return JSON.stringify({ total: dbs.length, estructura: agrupado, detalle: dbs }, null, 2);
+    const resp: any = { total: dbs.length, estructura: agrupado, detalle: dbs };
+    if (Object.keys(erroresServidor).length > 0) resp.errores_servidor = erroresServidor;
+    return JSON.stringify(resp, null, 2);
   }
 
   // ── explorar_esquema_db ─────────────────────────────────────────
