@@ -103,7 +103,17 @@ export async function ejecutarDiscovery(name: string, args: any): Promise<string
       agrupado[db.moduloNombre][db.agenciaNombre].push(db.anio);
     }
 
-    const resp: any = { total: dbs.length, estructura: agrupado, detalle: dbs };
+    // _diag: siempre presente — permite confirmar qué código está corriendo
+    const diag: Record<string, any> = { servidores_intentados: CLAVES_SERVIDOR };
+    for (let i = 0; i < resultados.length; i++) {
+      const r = resultados[i];
+      const c = CLAVES_SERVIDOR[i];
+      diag[c] = r.status === 'fulfilled'
+        ? { ok: true, total_raw: r.value.dbs.length }
+        : { ok: false, error: String(r.reason).slice(0, 120) };
+    }
+
+    const resp: any = { total: dbs.length, _diag: diag, estructura: agrupado, detalle: dbs };
     if (Object.keys(erroresServidor).length > 0) resp.errores_servidor = erroresServidor;
     return JSON.stringify(resp, null, 2);
   }
