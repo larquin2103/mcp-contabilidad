@@ -1,0 +1,753 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Activos Fijos · Infocomunicaciones · Dirección 2026</title>
+  <style>
+    :root {
+      --bg:      #040d1c;
+      --s1:      #081020;
+      --s2:      #0d1829;
+      --s3:      #111f33;
+      --s4:      #162540;
+      --border:  #162035;
+      --border2: #1e2e48;
+      --border3: #263d60;
+      --text:    #d6e8ff;
+      --text2:   #6b90b8;
+      --text3:   #354f6e;
+      --accent:  #2563eb;
+      --ok:      #0fad6e;
+      --warn:    #c8850d;
+      --crit:    #d63a3a;
+      --info:    #1e6fb8;
+      --c756:    #3b7dd8;
+      --c759:    #0d9890;
+      --c760:    #8855e8;
+      --font:    'Segoe UI', system-ui, sans-serif;
+      --mono:    'Cascadia Code','SF Mono',monospace;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body { background: var(--bg); color: var(--text); font-family: var(--font); font-size: 14px; line-height: 1.5; }
+    ::-webkit-scrollbar { width: 5px; height: 5px; }
+    ::-webkit-scrollbar-track { background: var(--bg); }
+    ::-webkit-scrollbar-thumb { background: var(--border3); border-radius: 3px; }
+
+    /* Brand */
+    .brand-bar { height: 3px; background: linear-gradient(90deg, #2563eb, #0d9890); }
+    .top-nav {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 12px 28px; border-bottom: 1px solid var(--border); background: var(--s1);
+    }
+    .nav-logo { width: 30px; height: 30px; background: var(--accent); border-radius: 6px; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 13px; color: #fff; }
+    .nav-brand { display: flex; align-items: center; gap: 11px; }
+    .nav-name  { font-size: 13px; font-weight: 600; }
+    .nav-sub   { font-size: 11px; color: var(--text3); margin-top: 1px; }
+    .nav-meta  { font-size: 11px; color: var(--text3); display: flex; gap: 20px; align-items: center; }
+    .nav-dot   { width: 6px; height: 6px; border-radius: 50%; background: var(--ok); box-shadow: 0 0 6px var(--ok); display: inline-block; margin-right: 5px; }
+
+    /* Page */
+    .page { max-width: 1400px; margin: 0 auto; padding: 28px 28px 60px; }
+
+    /* Header */
+    .page-header { margin-bottom: 32px; padding-bottom: 28px; border-bottom: 1px solid var(--border); }
+    .breadcrumb  { font-size: 11px; color: var(--text3); letter-spacing: .08em; text-transform: uppercase; margin-bottom: 10px; }
+    .breadcrumb .sep { color: var(--border3); margin: 0 6px; }
+    .page-title  { font-size: 24px; font-weight: 300; color: var(--text); margin-bottom: 4px; }
+    .page-title strong { font-weight: 700; }
+    .page-sub    { font-size: 13px; color: var(--text2); margin-bottom: 18px; }
+
+    .hero-strip  { display: flex; align-items: flex-end; gap: 36px; flex-wrap: wrap; margin-bottom: 16px; }
+    .hero-main   { }
+    .hero-lbl    { font-size: 10px; text-transform: uppercase; letter-spacing: .12em; color: var(--text3); margin-bottom: 3px; }
+    .hero-val    { font-size: 36px; font-weight: 700; color: #fff; font-variant-numeric: tabular-nums; letter-spacing: -1px; line-height: 1; }
+    .hero-val .cup { font-size: 16px; font-weight: 400; color: var(--text2); margin-left: 5px; }
+    .hero-divider{ width: 1px; height: 32px; background: var(--border2); align-self: flex-end; margin-bottom: 4px; }
+    .hero-stats  { display: flex; gap: 28px; flex-wrap: wrap; }
+    .hstat .hv  { font-size: 18px; font-weight: 600; color: var(--text); font-variant-numeric: tabular-nums; }
+    .hstat .hl  { font-size: 11px; color: var(--text3); margin-top: 2px; }
+
+    .tags { display: flex; gap: 8px; flex-wrap: wrap; }
+    .tag  { padding: 3px 10px; border: 1px solid var(--border2); border-radius: 4px; font-size: 10px; color: var(--text3); letter-spacing: .04em; text-transform: uppercase; background: var(--s2); }
+
+    /* Section label */
+    .sec-lbl { font-size: 10px; text-transform: uppercase; letter-spacing: .14em; color: var(--text3); margin-bottom: 14px; display: flex; align-items: center; gap: 12px; }
+    .sec-lbl::after { content:''; flex:1; height:1px; background:var(--border); }
+
+    /* Area cards */
+    .area-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 14px; margin-bottom: 32px; }
+    @media(max-width:800px){ .area-grid { grid-template-columns: 1fr; } }
+    .area-card { background: var(--s2); border: 1px solid var(--border); border-radius: 8px; padding: 18px 20px; position: relative; overflow: hidden; cursor: pointer; transition: border-color .2s; }
+    .area-card::before { content:''; position:absolute; top:0; left:0; right:0; height:2px; }
+    .area-card.a756::before { background: var(--c756); }
+    .area-card.a759::before { background: var(--c759); }
+    .area-card.a760::before { background: var(--c760); }
+    .area-card.active, .area-card:hover { border-color: var(--border3); }
+    .area-card.active { border-color: var(--accent); }
+    .ac-code  { font-size: 10px; color: var(--text3); letter-spacing: .08em; text-transform: uppercase; margin-bottom: 5px; }
+    .ac-name  { font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; margin-bottom: 4px; }
+    .ac-name.a756 { color: var(--c756); }
+    .ac-name.a759 { color: var(--c759); }
+    .ac-name.a760 { color: var(--c760); }
+    .ac-resp  { font-size: 11px; color: var(--text3); margin-bottom: 14px; }
+    .ac-val   { font-size: 20px; font-weight: 700; color: #fff; font-variant-numeric: tabular-nums; letter-spacing: -.5px; margin-bottom: 10px; }
+    .ac-val span { font-size: 11px; font-weight: 400; color: var(--text3); margin-left: 3px; }
+    .ac-bar-wrap { height: 3px; background: var(--border); border-radius: 2px; margin-bottom: 10px; }
+    .ac-bar { height: 100%; border-radius: 2px; }
+    .ac-bar.a756 { background: var(--c756); }
+    .ac-bar.a759 { background: var(--c759); }
+    .ac-bar.a760 { background: var(--c760); }
+    .ac-meta { display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 8px; }
+    .ac-meta .cnt { color: var(--text2); }
+    .ac-meta .vr  { color: var(--text3); }
+    .ac-estados { display: flex; gap: 8px; font-size: 10px; }
+    .est-badge { padding: 2px 7px; border-radius: 3px; }
+    .est-b { background: rgba(15,173,110,.12); color: var(--ok); border: 1px solid rgba(15,173,110,.2); }
+    .est-m { background: rgba(214,58,58,.12); color: var(--crit); border: 1px solid rgba(214,58,58,.2); }
+    .est-r { background: rgba(200,133,13,.12); color: var(--warn); border: 1px solid rgba(200,133,13,.2); }
+
+    /* Toolbar */
+    .toolbar { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; }
+    .search-box {
+      flex: 1; min-width: 220px; max-width: 340px;
+      background: var(--s2); border: 1px solid var(--border2); border-radius: 6px;
+      padding: 8px 14px; font-size: 13px; color: var(--text); font-family: var(--font);
+      outline: none; transition: border-color .2s;
+    }
+    .search-box::placeholder { color: var(--text3); }
+    .search-box:focus { border-color: var(--accent); }
+    .filter-group { display: flex; gap: 6px; flex-wrap: wrap; }
+    .filter-btn {
+      background: var(--s2); border: 1px solid var(--border2); border-radius: 5px;
+      color: var(--text3); padding: 6px 14px; font-size: 11px; font-family: var(--font);
+      cursor: pointer; transition: all .15s; white-space: nowrap;
+    }
+    .filter-btn:hover  { border-color: var(--border3); color: var(--text2); }
+    .filter-btn.active { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 600; }
+    .count-badge { font-size: 11px; color: var(--text3); margin-left: auto; white-space: nowrap; }
+
+    /* Table */
+    .table-wrap { overflow-x: auto; border-radius: 8px; border: 1px solid var(--border); }
+    table { width: 100%; border-collapse: collapse; font-size: 12px; font-variant-numeric: tabular-nums; }
+    thead th {
+      text-align: left; padding: 9px 12px; font-size: 10px; font-weight: 600;
+      text-transform: uppercase; letter-spacing: .08em; color: var(--text3);
+      border-bottom: 1px solid var(--border2); background: var(--s3); white-space: nowrap;
+      cursor: pointer; user-select: none;
+    }
+    thead th:hover { color: var(--text2); }
+    thead th.sorted { color: var(--accent); }
+    thead th .sort-arrow { margin-left: 4px; opacity: .5; }
+    thead th.sorted .sort-arrow { opacity: 1; }
+    tbody td { padding: 9px 12px; border-bottom: 1px solid var(--border); color: var(--text); white-space: nowrap; }
+    tbody tr:nth-child(even) td { background: rgba(255,255,255,.01); }
+    tbody tr:hover td { background: var(--s3); }
+    tbody tr.hidden { display: none; }
+    .num { text-align: right; }
+    .area-pill {
+      display: inline-flex; align-items: center; gap: 5px; padding: 2px 8px;
+      border-radius: 4px; font-size: 10px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase;
+    }
+    .area-pill.a756 { background: rgba(59,125,216,.12); color: var(--c756); border: 1px solid rgba(59,125,216,.2); }
+    .area-pill.a759 { background: rgba(13,152,144,.12); color: var(--c759); border: 1px solid rgba(13,152,144,.2); }
+    .area-pill.a760 { background: rgba(136,85,232,.12); color: var(--c760); border: 1px solid rgba(136,85,232,.2); }
+    .est-chip {
+      display: inline-block; padding: 1px 7px; border-radius: 3px; font-size: 10px; font-weight: 700; text-transform: uppercase;
+    }
+    .est-chip.B { background: rgba(15,173,110,.12); color: var(--ok); }
+    .est-chip.M { background: rgba(214,58,58,.12); color: var(--crit); }
+    .est-chip.R { background: rgba(200,133,13,.12); color: var(--warn); }
+    .est-chip.I { background: rgba(100,100,100,.12); color: #777; }
+    .est-chip.S { background: rgba(100,100,100,.08); color: var(--text3); }
+    .vr-pos { color: var(--ok); font-weight: 600; }
+    .vr-zero { color: var(--text3); }
+    .no-results { text-align: center; padding: 48px; color: var(--text3); font-size: 13px; }
+
+    /* Print button */
+    .btn-print {
+      background: var(--s2); border: 1px solid var(--border2); border-radius: 6px;
+      color: var(--text2); padding: 7px 16px; font-size: 12px; font-family: var(--font);
+      cursor: pointer; transition: all .15s;
+    }
+    .btn-print:hover { border-color: var(--border3); color: var(--text); }
+
+    /* Footer */
+    .footer { border-top: 1px solid var(--border); padding: 20px 0 0; margin-top: 32px; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 16px; }
+    .footer-l { font-size: 11px; color: var(--text3); line-height: 1.7; }
+    .footer-l strong { color: var(--text2); }
+    .footer-r { font-size: 10px; color: var(--text3); text-align: right; line-height: 1.9; }
+
+    @media print {
+      .brand-bar, .top-nav, .toolbar, .btn-print, .area-card { display: none !important; }
+      body { background: #fff; color: #000; font-size: 11px; }
+      .page { padding: 10px; max-width: none; }
+      .table-wrap { border: 1px solid #ccc; }
+      table { font-size: 9px; }
+      thead th { background: #f0f0f0; color: #333; }
+      tbody td { border-bottom: 1px solid #e0e0e0; color: #000; }
+      .area-pill, .est-chip { border: 1px solid #ccc; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="brand-bar"></div>
+
+<nav class="top-nav">
+  <div class="nav-brand">
+    <div class="nav-logo">MB</div>
+    <div>
+      <div class="nav-name">Medios Básicos · ERP Resolución 235/2005</div>
+      <div class="nav-sub">MBDIR2026 · Solo lectura · SQL Server 2000</div>
+    </div>
+  </div>
+  <div class="nav-meta">
+    <span><span class="nav-dot"></span>Conexión activa</span>
+    <span>Dirección · Ejercicio 2026</span>
+    <button class="btn-print" onclick="window.print()">Imprimir</button>
+  </div>
+</nav>
+
+<div class="page">
+
+  <header class="page-header">
+    <div class="breadcrumb">
+      Dirección <span class="sep">›</span>
+      Medios Básicos <span class="sep">›</span>
+      Infocomunicaciones
+    </div>
+    <h1 class="page-title">Activos Fijos · <strong>Área de Infocomunicaciones</strong></h1>
+    <p class="page-sub">Áreas 756 Información · 759 Seguridad Informática · 760 Defensa y Red — Ejercicio 2026</p>
+
+    <div class="hero-strip">
+      <div class="hero-main">
+        <div class="hero-lbl">Valor Inicial Total</div>
+        <div class="hero-val">366,567<span class="cup">.11 CUP</span></div>
+      </div>
+      <div class="hero-divider"></div>
+      <div class="hero-stats">
+        <div class="hstat"><div class="hv">242</div><div class="hl">Total activos</div></div>
+        <div class="hstat"><div class="hv">270,656</div><div class="hl">Dep. acumulada (CUP)</div></div>
+        <div class="hstat"><div class="hv">95,911</div><div class="hl">Valor residual (CUP)</div></div>
+        <div class="hstat"><div class="hv">3</div><div class="hl">Áreas</div></div>
+      </div>
+    </div>
+
+    <div class="tags">
+      <span class="tag">MBDIR2026</span>
+      <span class="tag">Código 756 · Información</span>
+      <span class="tag">Código 759 · Seguridad Informática</span>
+      <span class="tag">Código 760 · Defensa y Red</span>
+    </div>
+  </header>
+
+  <!-- AREA CARDS -->
+  <div class="sec-lbl">Resumen por área</div>
+  <div class="area-grid">
+
+    <div class="area-card a756" onclick="filterArea('756')">
+      <div class="ac-code">Código 756</div>
+      <div class="ac-name a756">Información</div>
+      <div class="ac-resp">Resp: JOSEFA AGUERO ALVARIÑO</div>
+      <div class="ac-val">173,555<span>.69 CUP</span></div>
+      <div class="ac-bar-wrap"><div class="ac-bar a756" style="width:47.3%"></div></div>
+      <div class="ac-meta">
+        <span class="cnt">60 activos · 47.3 % del valor</span>
+        <span class="vr">VR: 55,372 CUP</span>
+      </div>
+      <div class="ac-estados">
+        <span class="est-badge est-b">56 Bueno</span>
+        <span class="est-badge est-r">2 Regular</span>
+      </div>
+    </div>
+
+    <div class="area-card a759" onclick="filterArea('759')">
+      <div class="ac-code">Código 759</div>
+      <div class="ac-name a759">Seguridad Informática</div>
+      <div class="ac-resp">Resp: AGUSTIN CASTILLO ESTRADA</div>
+      <div class="ac-val">151,915<span>.51 CUP</span></div>
+      <div class="ac-bar-wrap"><div class="ac-bar a759" style="width:41.4%"></div></div>
+      <div class="ac-meta">
+        <span class="cnt">144 activos · 41.4 % del valor</span>
+        <span class="vr">VR: 19,142 CUP</span>
+      </div>
+      <div class="ac-estados">
+        <span class="est-badge est-b">97 Bueno</span>
+        <span class="est-badge est-m">20 Malo</span>
+        <span class="est-badge est-r">5 Regular</span>
+      </div>
+    </div>
+
+    <div class="area-card a760" onclick="filterArea('760')">
+      <div class="ac-code">Código 760</div>
+      <div class="ac-name a760">Defensa y Red</div>
+      <div class="ac-resp">Resp: HEBERTO RIVERO</div>
+      <div class="ac-val">41,095<span>.91 CUP</span></div>
+      <div class="ac-bar-wrap"><div class="ac-bar a760" style="width:11.2%"></div></div>
+      <div class="ac-meta">
+        <span class="cnt">38 activos · 11.2 % del valor</span>
+        <span class="vr">VR: 21,396 CUP</span>
+      </div>
+      <div class="ac-estados">
+        <span class="est-badge est-b">36 Bueno</span>
+        <span class="est-badge est-r">1 Regular</span>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- TOOLBAR -->
+  <div class="sec-lbl">Listado de activos</div>
+  <div class="toolbar">
+    <input class="search-box" id="searchBox" type="text" placeholder="Buscar por No. inventario o descripción..." oninput="applyFilters()">
+    <div class="filter-group">
+      <button class="filter-btn active" onclick="filterArea('all',this)">Todas (242)</button>
+      <button class="filter-btn" onclick="filterArea('756',this)">Información (60)</button>
+      <button class="filter-btn" onclick="filterArea('759',this)">Seg. Informática (144)</button>
+      <button class="filter-btn" onclick="filterArea('760',this)">Defensa y Red (38)</button>
+    </div>
+    <div class="filter-group">
+      <button class="filter-btn" id="estBtnAll" onclick="filterEstado('all',this)">Todos estados</button>
+      <button class="filter-btn" id="estBtnB"   onclick="filterEstado('B',this)">Bueno</button>
+      <button class="filter-btn" id="estBtnM"   onclick="filterEstado('M',this)">Malo</button>
+      <button class="filter-btn" id="estBtnR"   onclick="filterEstado('R',this)">Regular</button>
+    </div>
+    <span class="count-badge" id="countBadge">Mostrando 242 activos</span>
+  </div>
+
+  <!-- TABLE -->
+  <div class="table-wrap">
+    <table id="assetTable">
+      <thead>
+        <tr>
+          <th onclick="sortTable(0)">No. Inventario <span class="sort-arrow">↕</span></th>
+          <th onclick="sortTable(1)">Descripción <span class="sort-arrow">↕</span></th>
+          <th onclick="sortTable(2)">Área <span class="sort-arrow">↕</span></th>
+          <th onclick="sortTable(3)" class="num">Valor Inicial <span class="sort-arrow">↕</span></th>
+          <th onclick="sortTable(4)" class="num">Dep. Acum. <span class="sort-arrow">↕</span></th>
+          <th onclick="sortTable(5)" class="num">Valor Residual <span class="sort-arrow">↕</span></th>
+          <th onclick="sortTable(6)">Año Fab. <span class="sort-arrow">↕</span></th>
+          <th onclick="sortTable(7)">Vida Útil <span class="sort-arrow">↕</span></th>
+          <th onclick="sortTable(8)" class="num">Tasa % <span class="sort-arrow">↕</span></th>
+          <th onclick="sortTable(9)">Estado <span class="sort-arrow">↕</span></th>
+          <th onclick="sortTable(10)">F. Alta <span class="sort-arrow">↕</span></th>
+        </tr>
+      </thead>
+      <tbody id="tbody"></tbody>
+    </table>
+    <div class="no-results" id="noResults" style="display:none">No se encontraron activos con los filtros aplicados.</div>
+  </div>
+
+  <!-- FOOTER -->
+  <footer class="footer">
+    <div class="footer-l">
+      <strong>Fuente:</strong> MBDIR2026 · Tabla MB · Campos Anal1 IN (756, 759, 760) · Borrado = 0<br>
+      <strong>Módulo:</strong> Medios Básicos · ERP Resolución 235/2005 MFP · SQL Server 2000<br>
+      <strong>Agencia:</strong> Dirección · Ejercicio 2026
+    </div>
+    <div class="footer-r">
+      Generado el 5 de junio de 2026<br>
+      CFO Intelligence · mcp-contabilidad<br>
+      242 activos · 3 áreas
+    </div>
+  </footer>
+
+</div>
+
+<script>
+/* ═══════════════════════════════════
+   DATOS EMBEBIDOS
+═══════════════════════════════════ */
+const areas = {
+  '756': { name:'INFORMACIÓN',          cls:'a756', resp:'JOSEFA AGUERO ALVARIÑO' },
+  '759': { name:'SEGURIDAD INFORMÁTICA',cls:'a759', resp:'AGUSTIN CASTILLO ESTRADA' },
+  '760': { name:'DEFENSA Y RED',        cls:'a760', resp:'HEBERTO RIVERO' },
+};
+
+const raw = [
+  // ─── ÁREA 756 — INFORMACIÓN ───────────────────────────────────
+  {inv:'710-8098',  d:'AIRE ACONDICIONADO 6000 BTU',                      area:'756',grp:'7',vi:125.15,  da:125.15,  vr:0,        af:0,    vu:10,td:10,  est:'B',fpm:null},
+  {inv:'710-8090',  d:'AIRE ACONDICIONADO 6000 BTU',                      area:'756',grp:'7',vi:125.15,  da:125.15,  vr:0,        af:0,    vu:10,td:10,  est:'B',fpm:null},
+  {inv:'710-7902',  d:'AIRE ACONDICIONADO 6000 BTU',                      area:'756',grp:'7',vi:348.22,  da:348.22,  vr:0,        af:0,    vu:10,td:10,  est:'B',fpm:null},
+  {inv:'710-10520', d:'ARCHIVO DE 3 GAVETAS CON LLAVIN INCLUIDO',         area:'756',grp:'7',vi:289.45,  da:226.54,  vr:62.91,    af:0,    vu:10,td:10,  est:'B',fpm:'2018-07-31'},
+  {inv:'710-3988',  d:'ARCHIVO METALICO 4G',                              area:'756',grp:'7',vi:159.57,  da:159.57,  vr:0,        af:0,    vu:10,td:10,  est:'B',fpm:null},
+  {inv:'710-8910',  d:'ARCHIVO METALICO DE 4 GAVETAS',                   area:'756',grp:'7',vi:317.90,  da:317.90,  vr:0,        af:0,    vu:10,td:10,  est:'B',fpm:null},
+  {inv:'710-10673', d:'ARMARIO AVD 1050',                                 area:'756',grp:'7',vi:365.88,  da:265.35,  vr:100.53,   af:0,    vu:10,td:10,  est:'B',fpm:'2019-02-20'},
+  {inv:'710-10578', d:'BURO 1.22 X 800 CON ELEMENTOS METALICOS',         area:'756',grp:'7',vi:198.41,  da:150.15,  vr:48.26,    af:0,    vu:10,td:10,  est:'B',fpm:'2018-09-16'},
+  {inv:'710-7385',  d:'BURO DE 1 TORRE 3 GAVETAS',                        area:'756',grp:'7',vi:295.06,  da:295.06,  vr:0,        af:0,    vu:10,td:10,  est:'R',fpm:null},
+  {inv:'710-7492',  d:'BURO DE 1 TORRE 3 GAVETAS',                        area:'756',grp:'7',vi:295.06,  da:295.06,  vr:0,        af:0,    vu:0, td:10,  est:'R',fpm:null},
+  {inv:'710-6969',  d:'BURO DE MADERA',                                   area:'756',grp:'7',vi:219.10,  da:219.10,  vr:0,        af:0,    vu:10,td:10,  est:'B',fpm:null},
+  {inv:'710-6970',  d:'BURO DE MADERA',                                   area:'756',grp:'7',vi:219.10,  da:219.10,  vr:0,        af:0,    vu:10,td:10,  est:'B',fpm:null},
+  {inv:'710-6889',  d:'BURO DE MADERA',                                   area:'756',grp:'7',vi:219.10,  da:219.10,  vr:0,        af:0,    vu:10,td:10,  est:'B',fpm:null},
+  {inv:'710-6967',  d:'BURO DE MADERA',                                   area:'756',grp:'7',vi:219.10,  da:219.10,  vr:0,        af:0,    vu:10,td:10,  est:'B',fpm:null},
+  {inv:'710-5074',  d:'BURO DE MADERA 1 TORRE',                           area:'756',grp:'7',vi:89.40,   da:89.40,   vr:0,        af:2004, vu:10,td:10,  est:'B',fpm:'2004-01-01'},
+  {inv:'510-7109',  d:'CAMARA DIGITAL EPSON',                             area:'756',grp:'5',vi:1169.11, da:1169.11, vr:0,        af:2004, vu:7, td:15,  est:'B',fpm:'2004-01-01'},
+  {inv:'620-00052', d:'CICLOMOTOR ELECTRICO NIU M+LITE-05',               area:'756',grp:'6',vi:57407.22,da:44969.13,vr:12438.09, af:2022, vu:5, td:20,  est:'B',fpm:'2022-01-31'},
+  {inv:'510-6827',  d:'COMPUTADORA CON BANCO DE BATERIAS',                area:'756',grp:'5',vi:20373.75,da:20373.75,vr:0,        af:2004, vu:7, td:15,  est:'B',fpm:'2004-01-01'},
+  {inv:'510-7364',  d:'COMPUTADORA DISEÑO',                               area:'756',grp:'5',vi:6682.83, da:6682.83, vr:0,        af:2004, vu:7, td:15,  est:'B',fpm:'2004-01-01'},
+  {inv:'510-9949',  d:'COMPUTADORA PC CLON',                              area:'756',grp:'5',vi:856.28,  da:856.28,  vr:0,        af:0,    vu:7, td:15,  est:'B',fpm:null},
+  {inv:'510-6683',  d:'COMPUTADORA P-IV ATILA',                           area:'756',grp:'5',vi:1069.61, da:1069.61, vr:0,        af:2004, vu:7, td:15,  est:'B',fpm:'2004-01-01'},
+  {inv:'510-233803',d:'CONJUNTO DE CABLES DE AUDIO Y VIDEO VIDEOCONFERENCIA',area:'756',grp:'5',vi:102.27,da:44.80,vr:57.47,     af:2023, vu:7, td:15,  est:'B',fpm:'2023-06-30'},
+  {inv:'510-8134',  d:'DATASHOW SONY PL CS-21 C/LAMPARA',                 area:'756',grp:'5',vi:1973.46, da:1973.46, vr:0,        af:2004, vu:7, td:15,  est:'B',fpm:'2004-01-01'},
+  {inv:'510-8560',  d:'DUAL CORE SEAN E 3110',                            area:'756',grp:'5',vi:2586.23, da:2586.23, vr:0,        af:2004, vu:7, td:15,  est:'B',fpm:'2004-01-01'},
+  {inv:'510-8801-A',d:'EQUIPO MULTIFUNCION C/USB',                        area:'756',grp:'5',vi:429.75,  da:429.75,  vr:0,        af:0,    vu:7, td:15,  est:'S',fpm:null},
+  {inv:'710-8259',  d:'GREE 60/20-D 24000 (AIRE ACONDIC.)',               area:'756',grp:'7',vi:493.16,  da:493.16,  vr:0,        af:0,    vu:10,td:10,  est:'B',fpm:null},
+  {inv:'510-7708',  d:'IMPRESORA HP LASERJEP 1320',                       area:'756',grp:'5',vi:655.52,  da:655.52,  vr:0,        af:0,    vu:7, td:15,  est:'S',fpm:null},
+  {inv:'710-3995',  d:'MESA DE CENTRO',                                   area:'756',grp:'7',vi:18.00,   da:18.00,   vr:0,        af:2004, vu:10,td:10,  est:'B',fpm:null},
+  {inv:'710-3620',  d:'MESA GRANDE DE REUNIONES',                         area:'756',grp:'7',vi:300.00,  da:300.00,  vr:0,        af:0,    vu:10,td:10,  est:'B',fpm:null},
+  {inv:'510-9961',  d:'MONITOR',                                          area:'756',grp:'5',vi:145.20,  da:145.20,  vr:0,        af:0,    vu:7, td:15,  est:'B',fpm:null},
+  {inv:'510-10654', d:'MONITOR DE 22 PULGADAS',                           area:'756',grp:'5',vi:227.92,  da:227.92,  vr:0,        af:0,    vu:7, td:15,  est:'B',fpm:'2019-02-07'},
+  {inv:'510-8368',  d:'MONITOR PC',                                       area:'756',grp:'5',vi:247.92,  da:247.92,  vr:0,        af:2004, vu:7, td:15,  est:'B',fpm:'2004-01-01'},
+  {inv:'710-7132',  d:'ORDENADOR DIGITAL',                                area:'756',grp:'7',vi:372.43,  da:372.43,  vr:0,        af:0,    vu:10,td:10,  est:'B',fpm:null},
+  {inv:'510-10655', d:'PC CORE 16GB 1TB',                                 area:'756',grp:'5',vi:1686.61, da:1686.61, vr:0,        af:0,    vu:7, td:15,  est:'B',fpm:'2019-02-07'},
+  {inv:'510-8624',  d:'POWER EDGE-MINITOR 4 CABLE',                       area:'756',grp:'5',vi:2321.93, da:2321.93, vr:0,        af:2004, vu:7, td:15,  est:'B',fpm:'2004-01-01'},
+  {inv:'510-8625',  d:'POWER EDGE-MONITOR 4 CABLE',                       area:'756',grp:'5',vi:2321.93, da:2321.93, vr:0,        af:2004, vu:7, td:15,  est:'B',fpm:'2004-01-01'},
+  {inv:'710-3782',  d:'PROYECTOR',                                        area:'756',grp:'7',vi:256.06,  da:256.06,  vr:0,        af:0,    vu:10,td:10,  est:'B',fpm:null},
+  {inv:'710-4195',  d:'SILLA',                                            area:'756',grp:'7',vi:12.00,   da:12.00,   vr:0,        af:0,    vu:10,td:10,  est:'B',fpm:null},
+  {inv:'710-6096',  d:'SILLA',                                            area:'756',grp:'7',vi:171.50,  da:171.50,  vr:0,        af:0,    vu:10,td:10,  est:'B',fpm:null},
+  {inv:'710-3601',  d:'SILLA',                                            area:'756',grp:'7',vi:12.00,   da:12.00,   vr:0,        af:0,    vu:10,td:10,  est:'B',fpm:null},
+  {inv:'710-3603',  d:'SILLA',                                            area:'756',grp:'7',vi:12.00,   da:12.00,   vr:0,        af:0,    vu:10,td:10,  est:'B',fpm:null},
+  {inv:'710-3605',  d:'SILLA',                                            area:'756',grp:'7',vi:12.00,   da:12.00,   vr:0,        af:0,    vu:10,td:10,  est:'B',fpm:null},
+  {inv:'710-3606',  d:'SILLA',                                            area:'756',grp:'7',vi:12.00,   da:12.00,   vr:0,        af:0,    vu:10,td:10,  est:'B',fpm:null},
+  {inv:'710-3607',  d:'SILLA',                                            area:'756',grp:'7',vi:12.00,   da:12.00,   vr:0,        af:0,    vu:10,td:10,  est:'B',fpm:null},
+  {inv:'710-3609',  d:'SILLA',                                            area:'756',grp:'7',vi:12.00,   da:12.00,   vr:0,        af:0,    vu:10,td:10,  est:'B',fpm:null},
+  {inv:'710-3612',  d:'SILLA',                                            area:'756',grp:'7',vi:12.00,   da:12.00,   vr:0,        af:0,    vu:10,td:10,  est:'B',fpm:null},
+  {inv:'710-3613',  d:'SILLA',                                            area:'756',grp:'7',vi:12.00,   da:12.00,   vr:0,        af:0,    vu:10,td:10,  est:'B',fpm:null},
+  {inv:'710-3614',  d:'SILLA',                                            area:'756',grp:'7',vi:12.00,   da:12.00,   vr:0,        af:0,    vu:10,td:10,  est:'B',fpm:null},
+  {inv:'710-3615',  d:'SILLA',                                            area:'756',grp:'7',vi:12.00,   da:12.00,   vr:0,        af:0,    vu:10,td:10,  est:'B',fpm:null},
+  {inv:'710-3616',  d:'SILLA',                                            area:'756',grp:'7',vi:12.00,   da:12.00,   vr:0,        af:0,    vu:10,td:10,  est:'B',fpm:null},
+  {inv:'710-3618',  d:'SILLA',                                            area:'756',grp:'7',vi:12.00,   da:12.00,   vr:0,        af:0,    vu:10,td:10,  est:'B',fpm:null},
+  {inv:'710-3619',  d:'SILLA',                                            area:'756',grp:'7',vi:12.00,   da:12.00,   vr:0,        af:0,    vu:10,td:10,  est:'B',fpm:null},
+  {inv:'710-3572',  d:'SILLA DE MADERA',                                  area:'756',grp:'7',vi:12.00,   da:12.00,   vr:0,        af:2013, vu:10,td:10,  est:'B',fpm:'2013-02-18'},
+  {inv:'710-7149',  d:'SILLA GIRATORIA',                                  area:'756',grp:'7',vi:37.54,   da:37.54,   vr:0,        af:2004, vu:10,td:10,  est:'B',fpm:null},
+  {inv:'510-233082',d:'SISTEMA DE ALTAVOCES LOGITECH EQUIP VIDEOCONFERENCIA',area:'756',grp:'5',vi:2513.00,da:1099.35,vr:1413.65, af:2023, vu:7, td:15,  est:'B',fpm:'2023-06-30'},
+  {inv:'510-10678', d:'TELEVISOR DE 32 LG MODELO 32LV340C',               area:'756',grp:'5',vi:358.68,  da:358.68,  vr:0,        af:0,    vu:7, td:15,  est:'B',fpm:'2019-02-06'},
+  {inv:'510-000004',d:'TELEVISOR LG 65 PULGADAS HD MODELO 650P8000PVA',   area:'756',grp:'5',vi:21843.92,da:4914.90, vr:16929.02, af:0,    vu:7, td:15,  est:'B',fpm:'2024-11-19'},
+  {inv:'510-233801',d:'TRUE VIDEO BAR 015 SR-2022080010 EQUIPO VIDEOCONFERENCIA',area:'756',grp:'5',vi:43239.38,da:18917.15,vr:24322.23,af:2023,vu:7,td:15,est:'B',fpm:'2023-06-30'},
+  {inv:'710-130801',d:'VENTILADOR 469-1308010',                            area:'756',grp:'7',vi:7.53,    da:7.53,    vr:0,        af:0,    vu:12,td:10,  est:'B',fpm:null},
+  {inv:'710-8202',  d:'VENTILADOR MINIPIE 16"',                            area:'756',grp:'7',vi:21.30,   da:21.30,   vr:0,        af:0,    vu:10,td:10,  est:'B',fpm:null},
+
+  // ─── ÁREA 759 — SEGURIDAD INFORMÁTICA ─────────────────────────
+  {inv:'710-8339',  d:'AIRE ACONDICIONADO',                               area:'759',grp:'7',vi:234.64,  da:234.64,  vr:0,        af:0,    vu:0, td:10,  est:'B',fpm:'2020-09-28'},
+  {inv:'510-7762',  d:'AIRE ACONDICIONADO',                               area:'759',grp:'5',vi:348.22,  da:348.22,  vr:0,        af:2004, vu:10,td:10,  est:'B',fpm:'2004-01-01'},
+  {inv:'710-8097',  d:'AIRE ACONDICIONADO 600 BTU',                       area:'759',grp:'7',vi:125.15,  da:125.15,  vr:0,        af:2015, vu:4, td:25,  est:'B',fpm:'2015-02-27'},
+  {inv:'710-8105',  d:'AIRE ACONDICIONADO 6000 BTU',                      area:'759',grp:'7',vi:125.15,  da:125.15,  vr:0,        af:2004, vu:10,td:10,  est:'B',fpm:null},
+  {inv:'710-8106',  d:'AIRE ACONDICIONADO 6000 BTU',                      area:'759',grp:'7',vi:125.15,  da:125.15,  vr:0,        af:2004, vu:10,td:10,  est:'B',fpm:null},
+  {inv:'710-8340',  d:'AIRE ACONDICIONADO LG',                            area:'759',grp:'7',vi:234.64,  da:234.64,  vr:0,        af:0,    vu:0, td:0,   est:'B',fpm:'2011-02-10'},
+  {inv:'710-7987',  d:'AIRE ACONDICIONADO SANSUNG',                       area:'759',grp:'7',vi:295.55,  da:295.55,  vr:0,        af:0,    vu:0, td:10,  est:'B',fpm:'2020-03-30'},
+  {inv:'510-21546', d:'AMOLADOR DE UTILES',                               area:'759',grp:'5',vi:725.39,  da:725.39,  vr:0,        af:0,    vu:10,td:10,  est:'B',fpm:'2011-01-01'},
+  {inv:'710-76010', d:'AMPLIFICADOR',                                     area:'759',grp:'7',vi:380.59,  da:380.59,  vr:0,        af:0,    vu:10,td:10,  est:'B',fpm:null},
+  {inv:'710-13200', d:'ANTEOJO MEDIDOR DE DIOPTRIA',                      area:'759',grp:'7',vi:153.00,  da:153.00,  vr:0,        af:0,    vu:10,td:10,  est:'B',fpm:'2011-03-24'},
+  {inv:'710-4423',  d:'ARCHIVO 6 GAVETAS FICHERO',                        area:'759',grp:'7',vi:173.78,  da:173.78,  vr:0,        af:0,    vu:10,td:10,  est:'R',fpm:null},
+  {inv:'710-4422',  d:'ARCHIVO DE 6 GAVETAS FICHERO',                     area:'759',grp:'7',vi:173.78,  da:173.78,  vr:0,        af:0,    vu:10,td:10,  est:'R',fpm:null},
+  {inv:'710-3652',  d:'ARCHIVO DE MADERA 4 GAVETAS',                      area:'759',grp:'7',vi:76.17,   da:76.17,   vr:0,        af:0,    vu:10,td:10,  est:'B',fpm:null},
+  {inv:'710-10644', d:'ARMARIO AVD 1050',                                 area:'759',grp:'7',vi:365.88,  da:265.35,  vr:100.53,   af:0,    vu:10,td:10,  est:'B',fpm:'2019-02-20'},
+  {inv:'510-67',    d:'ASPIRADORA DE POLVO',                              area:'759',grp:'5',vi:29.77,   da:29.77,   vr:0,        af:0,    vu:7, td:15,  est:'S',fpm:null},
+  {inv:'710-3713',  d:'BANCO DE TRABAJO',                                 area:'759',grp:'7',vi:80.00,   da:80.00,   vr:0,        af:0,    vu:10,td:10,  est:'B',fpm:'2011-02-10'},
+  {inv:'710-4138',  d:'BOKITOKI ALECO 190 C/2 BATERIAS',                  area:'759',grp:'7',vi:340.87,  da:340.87,  vr:0,        af:0,    vu:10,td:10,  est:'S',fpm:null},
+  {inv:'510-9940',  d:'BOKITOKI ICOM MARINO IC-M88',                      area:'759',grp:'5',vi:249.22,  da:208.00,  vr:41.22,    af:0,    vu:13,td:7.7, est:'B',fpm:'2015-06-08'},
+  {inv:'710-8376',  d:'BOKITOQUI ALECO 190 C/BATERIAS',                   area:'759',grp:'7',vi:347.30,  da:347.30,  vr:0,        af:0,    vu:10,td:10,  est:'S',fpm:null},
+  {inv:'710-8386',  d:'BOKITOQUI ALECO 190 C/BATERIAS',                   area:'759',grp:'7',vi:347.30,  da:347.30,  vr:0,        af:0,    vu:10,td:10,  est:'S',fpm:null},
+  {inv:'710-6415',  d:'BOKITOQUI ALEKO 190 C/2 BATERIAS',                 area:'759',grp:'7',vi:397.20,  da:397.20,  vr:0,        af:0,    vu:10,td:10,  est:'S',fpm:null},
+  {inv:'510-7484',  d:'BOKITOQUI ICOM-IC-FC3',                            area:'759',grp:'5',vi:405.00,  da:405.00,  vr:0,        af:2004, vu:10,td:10,  est:'B',fpm:'2004-01-01'},
+  {inv:'710-6902',  d:'BURO DE MADERA',                                   area:'759',grp:'7',vi:219.10,  da:219.10,  vr:0,        af:0,    vu:10,td:10,  est:'B',fpm:null},
+  {inv:'710-7015',  d:'BURO DE MADERA',                                   area:'759',grp:'7',vi:107.20,  da:107.20,  vr:0,        af:0,    vu:10,td:10,  est:'S',fpm:null},
+  {inv:'710-6903',  d:'BURO DE MADERA',                                   area:'759',grp:'7',vi:219.10,  da:219.10,  vr:0,        af:2004, vu:10,td:10,  est:'B',fpm:null},
+  {inv:'710-7477',  d:'BURO DE UNA TORRE',                                area:'759',grp:'7',vi:307.05,  da:307.05,  vr:0,        af:0,    vu:2, td:0,   est:'B',fpm:'2011-02-10'},
+  {inv:'710-3845',  d:'BUTACA DE ALUMINIO',                               area:'759',grp:'7',vi:44.86,   da:44.86,   vr:0,        af:2004, vu:10,td:10,  est:'B',fpm:'2004-01-01'},
+  {inv:'710-3625',  d:'BUTACA DE ALUMINIO Y NAYLON',                      area:'759',grp:'7',vi:28.00,   da:28.00,   vr:0,        af:2004, vu:10,td:10,  est:'B',fpm:'2004-01-01'},
+  {inv:'710-4466',  d:'BUTACA DE ALUMINIO Y NAYLON',                      area:'759',grp:'7',vi:28.00,   da:28.00,   vr:0,        af:0,    vu:10,td:10,  est:'B',fpm:null},
+  {inv:'710-3640',  d:'BUTACA DE MADERA GIRATORIA',                       area:'759',grp:'7',vi:75.00,   da:75.00,   vr:0,        af:0,    vu:10,td:10,  est:'R',fpm:null},
+  {inv:'710-34013', d:'CAJA DE ANTENA',                                   area:'759',grp:'7',vi:221.45,  da:221.45,  vr:0,        af:2004, vu:10,td:10,  est:'B',fpm:null},
+  {inv:'510-6641',  d:'CALCULADORA',                                      area:'759',grp:'5',vi:7.50,    da:7.50,    vr:0,        af:2004, vu:7, td:15,  est:'B',fpm:'2004-01-01'},
+  {inv:'510-4574',  d:'CALCULADORA',                                      area:'759',grp:'5',vi:25.00,   da:25.00,   vr:0,        af:2004, vu:7, td:15,  est:'B',fpm:'2004-01-01'},
+  {inv:'510-6797',  d:'CALCULADORA 12 DIGITOS',                           area:'759',grp:'5',vi:11.00,   da:11.00,   vr:0,        af:2004, vu:7, td:15,  est:'B',fpm:'2004-01-01'},
+  {inv:'510-7331',  d:'CALCULADORA SL-150 L',                             area:'759',grp:'5',vi:5.62,    da:5.62,    vr:0,        af:2004, vu:7, td:15,  est:'B',fpm:'2004-01-01'},
+  {inv:'510-7328',  d:'CALCULADORA SL-150L',                              area:'759',grp:'5',vi:5.62,    da:5.62,    vr:0,        af:2004, vu:7, td:15,  est:'B',fpm:'2004-01-01'},
+  {inv:'720-1000',  d:'CAMARA BIKON C/BATRIA, TARJETA SD 86B',            area:'759',grp:'5',vi:831.96,  da:831.96,  vr:0,        af:0,    vu:7, td:15,  est:'B',fpm:null},
+  {inv:'510-3400',  d:'CAMARA DIGITAL',                                   area:'759',grp:'5',vi:424.57,  da:286.74,  vr:137.83,   af:0,    vu:7, td:15,  est:'M',fpm:'2021-11-30'},
+  {inv:'510-8857',  d:'CAMARA DIGITAL SONY',                              area:'759',grp:'5',vi:472.50,  da:472.50,  vr:0,        af:0,    vu:7, td:15,  est:'M',fpm:'2021-10-12'},
+  {inv:'510-71058', d:'CAMARA FOTOGRAFICA',                               area:'759',grp:'5',vi:175.00,  da:175.00,  vr:0,        af:2004, vu:7, td:15,  est:'B',fpm:'2004-01-01'},
+  {inv:'510-7281',  d:'CAMARA P/V',                                       area:'759',grp:'5',vi:1807.52, da:1807.52, vr:0,        af:2004, vu:7, td:15,  est:'B',fpm:'2004-01-01'},
+  {inv:'510-6755-A',d:'COMPUTADORA HACER INTEL PENTIUM MONITOR',          area:'759',grp:'5',vi:1484.13, da:1484.13, vr:0,        af:0,    vu:7, td:15,  est:'M',fpm:null},
+  {inv:'510-6824',  d:'COMPUTADORA',                                      area:'759',grp:'5',vi:1679.94, da:1679.94, vr:0,        af:2004, vu:10,td:15,  est:'B',fpm:'2004-01-01'},
+  {inv:'510-6708-A',d:'COMPUTADORA ACEROPEN PENTIUM',                     area:'759',grp:'5',vi:1069.61, da:1069.61, vr:0,        af:0,    vu:7, td:15,  est:'S',fpm:null},
+  {inv:'510-3400A', d:'COMPUTADORA ATX SERIE 99975-2',                    area:'759',grp:'5',vi:6080.88, da:6080.88, vr:0,        af:0,    vu:7, td:15,  est:'M',fpm:'2011-01-31'},
+  {inv:'510-8673-A',d:'COMPUTADORA DELL ATX-OPTIPLEX 380',                area:'759',grp:'5',vi:406.14,  da:406.14,  vr:0,        af:0,    vu:7, td:15,  est:'B',fpm:'2024-11-21'},
+  {inv:'510-10013', d:'COMPUTADORA LAPTOP DELL 3872598446',               area:'759',grp:'5',vi:617.22,  da:617.22,  vr:0,        af:2015, vu:7, td:15,  est:'M',fpm:'2015-11-23'},
+  {inv:'510-10415', d:'COMPUTADORA LAPTOP PANASONIC CF-54C0026CM',        area:'759',grp:'5',vi:2231.00, da:2231.00, vr:0,        af:2024, vu:7, td:15,  est:'M',fpm:'2024-01-26'},
+  {inv:'510-6828',  d:'DC-20000 BANCO DE DATOS TELEF',                    area:'759',grp:'5',vi:15.00,   da:15.00,   vr:0,        af:2004, vu:7, td:15,  est:'B',fpm:'2004-01-01'},
+  {inv:'510-6829',  d:'ESCANER EPSON',                                    area:'759',grp:'5',vi:1857.47, da:1857.47, vr:0,        af:2004, vu:7, td:15,  est:'B',fpm:'2004-01-01'},
+  {inv:'510-6747',  d:'ESTABILIZADOR',                                    area:'759',grp:'5',vi:55.00,   da:55.00,   vr:0,        af:2004, vu:7, td:15,  est:'B',fpm:'2004-01-01'},
+  {inv:'510-6776',  d:'ESTABILIZADOR TRIPPTE',                            area:'759',grp:'5',vi:85.80,   da:85.80,   vr:0,        af:0,    vu:7, td:15,  est:'M',fpm:null},
+  {inv:'510-57033', d:'ESTACION DE RADIO',                                area:'759',grp:'5',vi:503.94,  da:503.94,  vr:0,        af:2004, vu:7, td:15,  est:'B',fpm:'2004-01-01'},
+  {inv:'510-6732',  d:'ESTACIÓN DE RADIO',                                area:'759',grp:'5',vi:503.94,  da:503.94,  vr:0,        af:0,    vu:7, td:15,  est:'B',fpm:null},
+  {inv:'510-6721',  d:'ESTACION DE RADIO IP 21,36',                       area:'759',grp:'5',vi:503.94,  da:503.94,  vr:0,        af:0,    vu:7, td:15,  est:'B',fpm:null},
+  {inv:'710-3717',  d:'ESTANTE DE MADERA',                                area:'759',grp:'7',vi:50.00,   da:50.00,   vr:0,        af:0,    vu:10,td:10,  est:'R',fpm:null},
+  {inv:'710-7927',  d:'ESTANTE DE MADERA Y FORMICA',                      area:'759',grp:'7',vi:45.00,   da:45.00,   vr:0,        af:0,    vu:10,td:10,  est:'B',fpm:null},
+  {inv:'710-6358',  d:'ESTANTE DE PALETA FIJA',                           area:'759',grp:'7',vi:179.95,  da:179.95,  vr:0,        af:0,    vu:10,td:10,  est:'S',fpm:null},
+  {inv:'510-6972',  d:'FACSEMIL PANASONIC',                               area:'759',grp:'5',vi:349.30,  da:349.30,  vr:0,        af:2004, vu:7, td:15,  est:'B',fpm:'2004-01-01'},
+  {inv:'510-7129',  d:'FUENTE DE ALIMENTACIÓN TX-815',                    area:'759',grp:'5',vi:136.58,  da:136.58,  vr:0,        af:0,    vu:17,td:10,  est:'M',fpm:null},
+  {inv:'8402',      d:'FUJITSO 1030 C 2 D 2 G H 2 2GB 250GB DVD',        area:'759',grp:'5',vi:1406.74, da:1406.74, vr:0,        af:0,    vu:7, td:15,  est:'M',fpm:'2010-01-30'},
+  {inv:'710-3902',  d:'GAVETERO DE 14 GAVETAS',                           area:'759',grp:'7',vi:100.00,  da:100.00,  vr:0,        af:0,    vu:10,td:10,  est:'S',fpm:null},
+  {inv:'510-7004',  d:'GRABADOR DE CD',                                   area:'759',grp:'5',vi:481.50,  da:481.50,  vr:0,        af:0,    vu:7, td:15,  est:'S',fpm:null},
+  {inv:'510-7867-1',d:'HF-ICM-718-Y ACCESORIOS',                         area:'759',grp:'5',vi:2064.57, da:2064.57, vr:0,        af:0,    vu:17,td:6,   est:'I',fpm:'2020-03-12'},
+  {inv:'510-6675',  d:'IMPRESORA DESJEKT COLOR',                          area:'759',grp:'5',vi:482.65,  da:482.65,  vr:0,        af:0,    vu:7, td:15,  est:'M',fpm:null},
+  {inv:'580-6550',  d:'IMPRESORA HP LASER JET-2015',                      area:'759',grp:'5',vi:414.63,  da:414.63,  vr:0,        af:0,    vu:7, td:15,  est:'B',fpm:'2018-10-30'},
+  {inv:'510-9954',  d:'IMPRESORA SC-FAX COPY HP LJ PRO 400',              area:'759',grp:'5',vi:668.80,  da:668.80,  vr:0,        af:0,    vu:7, td:15,  est:'B',fpm:'2015-06-23'},
+  {inv:'510-7143',  d:'KIT-VIDEO CAMARA',                                 area:'759',grp:'5',vi:129.69,  da:129.69,  vr:0,        af:2004, vu:7, td:15,  est:'B',fpm:'2004-01-01'},
+  {inv:'510-7301',  d:'LAPTO FUJITSU LIFEBOOK',                           area:'759',grp:'5',vi:3239.51, da:3239.51, vr:0,        af:0,    vu:7, td:15,  est:'M',fpm:null},
+  {inv:'510-7998',  d:'LAPTO HP 682 GENOTEBO',                            area:'759',grp:'5',vi:2255.10, da:2255.10, vr:0,        af:0,    vu:7, td:15,  est:'M',fpm:'2021-10-12'},
+  {inv:'510-8597',  d:'LAPTOP',                                           area:'759',grp:'5',vi:15049.29,da:15049.29,vr:0,        af:2022, vu:7, td:15,  est:'B',fpm:'2023-12-31'},
+  {inv:'510-7187',  d:'LAPTOP HP PROBOOK 4540S 2CE23710D8',               area:'759',grp:'5',vi:3845.22, da:3845.22, vr:0,        af:2024, vu:7, td:15,  est:'B',fpm:'2024-01-26'},
+  {inv:'C510-10569',d:'LAPTOP NOTEBOOK ES56 FUJITSU 15-6200U 4GB 500GB', area:'759',grp:'5',vi:1349.28, da:1349.28, vr:0,        af:0,    vu:7, td:15,  est:'B',fpm:'2018-07-31'},
+  {inv:'510-8853',  d:'LAPTOP PANASONIC CF-31 4GB',                       area:'759',grp:'5',vi:6063.73, da:6063.73, vr:0,        af:0,    vu:7, td:15,  est:'B',fpm:'2012-11-26'},
+  {inv:'510-10461', d:'LAPTOP PANASONIC CF-532ALZYNM (GEODESIA 1)',       area:'759',grp:'5',vi:2535.17, da:2535.17, vr:0,        af:0,    vu:7, td:15,  est:'M',fpm:'2024-01-26'},
+  {inv:'510-6855',  d:'LIBRETA CON CALCULADORA',                          area:'759',grp:'5',vi:6.00,    da:6.00,    vr:0,        af:2004, vu:7, td:15,  est:'B',fpm:'2004-01-01'},
+  {inv:'710-1254',  d:'LUNETAS-LAMPARAS',                                 area:'759',grp:'7',vi:5.76,    da:5.76,    vr:0,        af:0,    vu:12,td:9,   est:'B',fpm:'2011-02-10'},
+  {inv:'510-3629',  d:'MAQUINA DE ESCRIBIR',                              area:'759',grp:'5',vi:287.00,  da:287.00,  vr:0,        af:2004, vu:7, td:15,  est:'B',fpm:'2004-01-01'},
+  {inv:'710-4112',  d:'MESA DE MADERA',                                   area:'759',grp:'7',vi:20.00,   da:20.00,   vr:0,        af:0,    vu:10,td:10,  est:'S',fpm:null},
+  {inv:'510-67571', d:'MONITOR',                                          area:'759',grp:'5',vi:238.50,  da:238.50,  vr:0,        af:2004, vu:7, td:15,  est:'B',fpm:'2004-01-01'},
+  {inv:'510-8673-B',d:'MONITOR DELL MODELO E2011HT',                     area:'759',grp:'5',vi:169.23,  da:169.23,  vr:0,        af:2023, vu:7, td:15,  est:'B',fpm:'2023-11-15'},
+  {inv:'510-7956',  d:'MONITOR FS-7600 1024*768 17"',                     area:'759',grp:'5',vi:148.23,  da:148.23,  vr:0,        af:2004, vu:7, td:15,  est:'B',fpm:'2004-01-01'},
+  {inv:'510-10008', d:'MONITOR HACER',                                    area:'759',grp:'5',vi:94.30,   da:94.30,   vr:0,        af:0,    vu:7, td:15,  est:'B',fpm:'2015-11-09'},
+  {inv:'510-001',   d:'MONITOR LENOVO 23.8 PULGADAS',                     area:'759',grp:'5',vi:4810.80, da:1262.94, vr:3547.86,  af:2024, vu:7, td:15,  est:'B',fpm:'2024-08-30'},
+  {inv:'510-M0001', d:'MONITOR LENOVO 23.8"',                             area:'759',grp:'5',vi:4810.80, da:1443.36, vr:3367.44,  af:2024, vu:7, td:15,  est:'B',fpm:'2024-05-07'},
+  {inv:'510-8571',  d:'MONITOR LENOW LCD 19"',                            area:'759',grp:'5',vi:171.79,  da:171.79,  vr:0,        af:2004, vu:7, td:15,  est:'B',fpm:'2004-01-01'},
+  {inv:'510-8887',  d:'MONITOR NOD 18.5 P COLOR',                         area:'759',grp:'5',vi:162.92,  da:162.92,  vr:0,        af:0,    vu:7, td:15,  est:'B',fpm:null},
+  {inv:'510-10398', d:'MONITOR VIEWSONIC 18 SLD',                         area:'759',grp:'5',vi:104.97,  da:104.97,  vr:0,        af:0,    vu:7, td:15,  est:'B',fpm:'2016-12-05'},
+  {inv:'510-9963',  d:'MONITOR VIEWSONIC VA1917A VS16023',                area:'759',grp:'5',vi:145.20,  da:145.20,  vr:0,        af:2015, vu:7, td:15,  est:'M',fpm:'2015-06-29'},
+  {inv:'510-7617-B',d:'MONITOR VIEWSONIC VS13298 CHASIS CALIPSO',        area:'759',grp:'5',vi:4411.52, da:4411.52, vr:0,        af:2022, vu:7, td:15,  est:'M',fpm:'2022-06-29'},
+  {inv:'610-8868',  d:'MOTO JIALING LH-125-5A',                           area:'759',grp:'6',vi:501.90,  da:501.90,  vr:0,        af:0,    vu:5, td:20,  est:'B',fpm:null},
+  {inv:'510-8498',  d:'P-4 7500 CHP INTEL G-31',                          area:'759',grp:'5',vi:714.00,  da:714.00,  vr:0,        af:0,    vu:7, td:15,  est:'S',fpm:null},
+  {inv:'510-8232',  d:'PC CORE DUO 3.0 G',                                area:'759',grp:'5',vi:1043.34, da:1043.34, vr:0,        af:0,    vu:7, td:15,  est:'B',fpm:null},
+  {inv:'510-1067',  d:'PC CORE I7 128GB RAM',                             area:'759',grp:'5',vi:4261.54, da:4208.33, vr:53.21,    af:0,    vu:7, td:15,  est:'B',fpm:'2019-11-08'},
+  {inv:'510-10390', d:'PC INTEL CORE 17',                                 area:'759',grp:'5',vi:1183.21, da:1183.21, vr:0,        af:0,    vu:7, td:15,  est:'B',fpm:'2016-12-05'},
+  {inv:'510-10394', d:'PC INTEL CORE 17',                                 area:'759',grp:'5',vi:1183.21, da:1183.21, vr:0,        af:0,    vu:7, td:15,  est:'B',fpm:'2016-12-05'},
+  {inv:'510-8062',  d:'PC NOTEBOOK HP 6720 SERIE CNU8057P',               area:'759',grp:'5',vi:1055.12, da:1055.12, vr:0,        af:0,    vu:7, td:15,  est:'B',fpm:'2011-07-15'},
+  {inv:'510-8257',  d:'PC SIN HDD CLIENTE LIGERO',                        area:'759',grp:'5',vi:436.76,  da:436.76,  vr:0,        af:2004, vu:7, td:15,  est:'B',fpm:'2004-01-01'},
+  {inv:'510-8255',  d:'PC SIN HDD INTEL 20 IG*1',                         area:'759',grp:'5',vi:436.76,  da:436.76,  vr:0,        af:0,    vu:7, td:15,  est:'M',fpm:null},
+  {inv:'510-8254',  d:'PC SIN HDD INTEL 20 IG*1',                         area:'759',grp:'5',vi:436.76,  da:436.76,  vr:0,        af:0,    vu:7, td:15,  est:'S',fpm:null},
+  {inv:'510-8259',  d:'PC SIN HDD INTEL CLIENTE LIG #7',                  area:'759',grp:'5',vi:436.76,  da:436.76,  vr:0,        af:0,    vu:7, td:15,  est:'M',fpm:'2019-02-25'},
+  {inv:'510-8252',  d:'PC SIN HDD INTEL CLIENTE LIGERO',                  area:'759',grp:'5',vi:436.76,  da:436.76,  vr:0,        af:0,    vu:4, td:25,  est:'B',fpm:'2018-03-30'},
+  {inv:'510-8251',  d:'PC SIN HDD INTEL CLIENTES LIG. (TALLER)',          area:'759',grp:'5',vi:436.76,  da:436.76,  vr:0,        af:2004, vu:7, td:15,  est:'B',fpm:'2004-01-01'},
+  {inv:'510-8256',  d:'PC SIN HDD INTEL CLIENTES LIGERO',                 area:'759',grp:'5',vi:436.76,  da:436.76,  vr:0,        af:2004, vu:7, td:15,  est:'B',fpm:'2004-01-01'},
+  {inv:'510-10389', d:'PC THERMAL TASTE ATX CHASIS ECLIPSE',              area:'759',grp:'5',vi:21983.21,da:10251.27,vr:11731.94, af:2016, vu:7, td:15,  est:'M',fpm:'2016-11-22'},
+  {inv:'510-8672',  d:'PC-DELL DUO 1GB CON MONITOR SAFIRO',               area:'759',grp:'5',vi:676.90,  da:676.90,  vr:0,        af:0,    vu:7, td:15,  est:'M',fpm:null},
+  {inv:'510-8250',  d:'PC-SIN HDD CLIENTE LIGERO',                        area:'759',grp:'5',vi:436.76,  da:436.76,  vr:0,        af:2004, vu:7, td:15,  est:'B',fpm:'2004-01-01'},
+  {inv:'510-10189', d:'PIZARRA ELECTRICA CON ACCESORIOS',                 area:'759',grp:'5',vi:4067.64, da:4067.64, vr:0,        af:0,    vu:7, td:15,  est:'B',fpm:'2016-09-09'},
+  {inv:'710-6875',  d:'PLANTA DE RADIO',                                  area:'759',grp:'7',vi:359.49,  da:359.49,  vr:0,        af:0,    vu:10,td:10,  est:'S',fpm:null},
+  {inv:'510-6877',  d:'PLANTA DE RADIO',                                  area:'759',grp:'5',vi:359.49,  da:359.49,  vr:0,        af:2004, vu:10,td:10,  est:'B',fpm:'2004-01-01'},
+  {inv:'510-7485',  d:'PLANTA DE RADIO ICOM',                             area:'759',grp:'5',vi:443.00,  da:443.00,  vr:0,        af:2004, vu:7, td:10,  est:'B',fpm:'2004-01-01'},
+  {inv:'510-7121',  d:'PLANTA DE RADIO MOVIL/ANTENA',                     area:'759',grp:'5',vi:380.06,  da:380.06,  vr:0,        af:2004, vu:10,td:10,  est:'B',fpm:'2004-01-01'},
+  {inv:'510-7120',  d:'PLANTA DE RADIO MOVIL C/ANTENA',                   area:'759',grp:'5',vi:380.06,  da:380.06,  vr:0,        af:0,    vu:13,td:7.7, est:'M',fpm:'2022-07-14'},
+  {inv:'510-76012', d:'RADIO RECEPTOR C/ANTENA',                          area:'759',grp:'5',vi:141.88,  da:141.88,  vr:0,        af:2004, vu:10,td:10,  est:'B',fpm:'2004-01-01'},
+  {inv:'710-26050', d:'RADIO RITMO',                                      area:'759',grp:'7',vi:120.00,  da:120.00,  vr:0,        af:0,    vu:10,td:10,  est:'B',fpm:null},
+  {inv:'710-76041', d:'RADIO RITMO',                                      area:'759',grp:'7',vi:120.00,  da:120.00,  vr:0,        af:0,    vu:10,td:10,  est:'B',fpm:null},
+  {inv:'710-8375',  d:'RECEPTOR MAGALLAN',                                area:'759',grp:'7',vi:1238.77, da:1238.77, vr:0,        af:0,    vu:10,td:10,  est:'S',fpm:null},
+  {inv:'710-760460',d:'REPRODUCTORA DE VIDEO',                            area:'759',grp:'7',vi:91.90,   da:91.90,   vr:0,        af:0,    vu:10,td:10,  est:'B',fpm:null},
+  {inv:'710-6907',  d:'SILLA DE MADERA TAPIZADA',                         area:'759',grp:'7',vi:34.45,   da:34.45,   vr:0,        af:2004, vu:10,td:10,  est:'B',fpm:null},
+  {inv:'710-6461',  d:'SILLA DE MADERA Y PAJILLA',                        area:'759',grp:'7',vi:47.04,   da:47.04,   vr:0,        af:0,    vu:10,td:10,  est:'R',fpm:null},
+  {inv:'710-6095',  d:'SILLA GIRATORIA',                                  area:'759',grp:'7',vi:171.50,  da:171.50,  vr:0,        af:0,    vu:10,td:10,  est:'S',fpm:null},
+  {inv:'710-5063',  d:'SILLA GIRATORIA',                                  area:'759',grp:'7',vi:171.50,  da:171.50,  vr:0,        af:2004, vu:10,td:10,  est:'B',fpm:'2004-01-01'},
+  {inv:'710-5060',  d:'SILLA GIRATORIA',                                  area:'759',grp:'7',vi:171.50,  da:171.50,  vr:0,        af:0,    vu:0, td:0,   est:'B',fpm:'2011-02-10'},
+  {inv:'710-6456',  d:'SILLA RESPALDO PAJILLA',                           area:'759',grp:'7',vi:47.04,   da:47.04,   vr:0,        af:2004, vu:10,td:10,  est:'B',fpm:'2004-01-01'},
+  {inv:'710-4285',  d:'SILLON DE ALUMINIO Y NAYLON',                      area:'759',grp:'7',vi:28.00,   da:28.00,   vr:0,        af:0,    vu:10,td:10,  est:'B',fpm:null},
+  {inv:'510-8831',  d:'TELEFONO SAMSUNG GT-E-2550',                       area:'759',grp:'5',vi:90.00,   da:90.00,   vr:0,        af:0,    vu:7, td:15,  est:'B',fpm:'2022-11-30'},
+  {inv:'710-7186',  d:'TELEVISOR A COLOR DAEWON',                         area:'759',grp:'7',vi:231.99,  da:156.86,  vr:75.13,    af:0,    vu:12,td:9,   est:'B',fpm:'2019-02-25'},
+  {inv:'510-10098', d:'TELEVISOR HIBRIDO 32 PULG TVS 43K2',              area:'759',grp:'5',vi:519.00,  da:432.05,  vr:86.95,    af:0,    vu:17,td:6,   est:'B',fpm:'2015-12-10'},
+  {inv:'510-10423', d:'TRANSCEPTOR ONDA ULTRA PORTATIL BOQUITOQUI',      area:'759',grp:'5',vi:376.10,  da:376.10,  vr:0,        af:0,    vu:7, td:15,  est:'I',fpm:'2021-05-12'},
+  {inv:'710-76099', d:'TRANSRECEPTOR',                                    area:'759',grp:'7',vi:6116.71, da:6116.71, vr:0,        af:0,    vu:10,td:10,  est:'S',fpm:null},
+  {inv:'510-10424', d:'TRANSRECEPTOR ONDA PORTATIL BOQUITOQUI',          area:'759',grp:'5',vi:376.10,  da:376.10,  vr:0,        af:0,    vu:7, td:15,  est:'I',fpm:'2021-05-12'},
+  {inv:'510-76099', d:'TRANSRECEPTOR SEG 100',                            area:'759',grp:'5',vi:6116.71, da:6116.71, vr:0,        af:2004, vu:7, td:15,  est:'B',fpm:'2004-01-01'},
+  {inv:'510-76071', d:'TRANSRECEPTOR SEG 15',                             area:'759',grp:'5',vi:1841.67, da:1841.67, vr:0,        af:2004, vu:10,td:10,  est:'B',fpm:'2004-01-01'},
+  {inv:'510-42071A',d:'TRANSRECEPTOR SEG-100',                            area:'759',grp:'5',vi:6505.44, da:6505.44, vr:0,        af:0,    vu:7, td:15,  est:'S',fpm:null},
+  {inv:'710-76055', d:'TROMPETA',                                         area:'759',grp:'7',vi:30.44,   da:30.44,   vr:0,        af:0,    vu:10,td:10,  est:'B',fpm:null},
+  {inv:'710-7188',  d:'TV-20 COLOR DAEWO',                                area:'759',grp:'7',vi:231.99,  da:231.99,  vr:0,        af:0,    vu:10,td:10,  est:'B',fpm:null},
+  {inv:'510-8601',  d:'UPS SELECTOR TS-650 W C/REGUL',                   area:'759',grp:'5',vi:46.55,   da:46.55,   vr:0,        af:2004, vu:10,td:10,  est:'B',fpm:'2004-01-01'},
+  {inv:'710-8211',  d:'VENTILADOR MINI PIE 16"',                          area:'759',grp:'7',vi:21.30,   da:21.30,   vr:0,        af:2004, vu:10,td:10,  est:'B',fpm:null},
+  {inv:'710-8212',  d:'VENTILADOR MINI PIE 17"',                          area:'759',grp:'7',vi:21.30,   da:21.30,   vr:0,        af:0,    vu:10,td:10,  est:'B',fpm:null},
+  {inv:'710-8768A', d:'VENTILADOR PEDESTAL 16 PULGADAS',                  area:'759',grp:'7',vi:26.76,   da:26.76,   vr:0,        af:0,    vu:0, td:0,   est:'B',fpm:'2012-10-09'},
+  {inv:'710-3722',  d:'VITRINA',                                          area:'759',grp:'7',vi:200.00,  da:200.00,  vr:0,        af:0,    vu:10,td:10,  est:'B',fpm:'2011-02-10'},
+  {inv:'510-10182', d:'WED-HD CAMARA LOGITECH',                           area:'759',grp:'5',vi:101.20,  da:101.20,  vr:0,        af:0,    vu:7, td:15,  est:'B',fpm:'2016-06-08'},
+  {inv:'510-10184', d:'WED-HD CAMARA LOGITECH C-615',                     area:'759',grp:'5',vi:101.20,  da:101.20,  vr:0,        af:0,    vu:7, td:15,  est:'B',fpm:'2016-06-08'},
+  {inv:'510-68273', d:'ZIP IOMEGA PARALELO',                              area:'759',grp:'5',vi:213.68,  da:213.68,  vr:0,        af:0,    vu:7, td:15,  est:'S',fpm:null},
+
+  // ─── ÁREA 760 — DEFENSA Y RED ─────────────────────────────────
+  {inv:'510-6879',   d:'ACCESORIOS RS-4 TEC. REPETIDOR',                 area:'760',grp:'5',vi:1321.68, da:1321.68, vr:0,        af:2004, vu:10,td:10,  est:'B',fpm:'2004-01-01'},
+  {inv:'710-7904',   d:'AIRE ACONDICIONADO',                             area:'760',grp:'7',vi:348.23,  da:348.23,  vr:0,        af:0,    vu:10,td:10,  est:'B',fpm:null},
+  {inv:'710-8337',   d:'AIRE ACONDICIONADO LG',                          area:'760',grp:'7',vi:234.64,  da:234.64,  vr:0,        af:2004, vu:10,td:10,  est:'B',fpm:null},
+  {inv:'710-10519',  d:'ARCHIVO DE 3 GAVETAS CON LLAVIN INCLUIDO',       area:'760',grp:'7',vi:289.45,  da:226.54,  vr:62.91,    af:0,    vu:10,td:10,  est:'B',fpm:'2018-07-31'},
+  {inv:'710-10645',  d:'ARMERIO AVD 1050',                               area:'760',grp:'7',vi:365.88,  da:265.35,  vr:100.53,   af:0,    vu:10,td:10,  est:'B',fpm:'2019-02-20'},
+  {inv:'510-9937',   d:'BOKITOQUI PROFESIONAL PORTATIL',                 area:'760',grp:'5',vi:249.22,  da:237.60,  vr:11.62,    af:0,    vu:13,td:10,  est:'B',fpm:'2015-05-06'},
+  {inv:'510-9938',   d:'BOKITOQUI PROFESIONAL PORTATIL',                 area:'760',grp:'5',vi:249.22,  da:237.60,  vr:11.62,    af:0,    vu:13,td:10,  est:'B',fpm:'2015-05-06'},
+  {inv:'710-10575',  d:'BURO 1.22 X 800 CON ELEMENTOS METALICOS',        area:'760',grp:'7',vi:198.41,  da:150.15,  vr:48.26,    af:0,    vu:10,td:10,  est:'B',fpm:'2018-09-16'},
+  {inv:'710-10576',  d:'BURO 1.22 X 800 CON ELEMENTOS METALICOS',        area:'760',grp:'7',vi:198.41,  da:150.15,  vr:48.26,    af:0,    vu:10,td:10,  est:'B',fpm:'2018-09-16'},
+  {inv:'710-10577',  d:'BURO 1.22X800 CON ELEMENTOS METALICOS',          area:'760',grp:'7',vi:198.41,  da:150.15,  vr:48.26,    af:0,    vu:10,td:10,  est:'B',fpm:'2018-09-16'},
+  {inv:'710-6739',   d:'BURO DE MADERA',                                 area:'760',grp:'7',vi:106.78,  da:106.78,  vr:0,        af:0,    vu:10,td:10,  est:'B',fpm:null},
+  {inv:'510-10170',  d:'CAJA DECODIFICADORA CKD',                        area:'760',grp:'5',vi:513.00,  da:513.00,  vr:0,        af:0,    vu:7, td:15,  est:'B',fpm:'2016-11-21'},
+  {inv:'510-7558',   d:'CALCULADORA LC-733',                             area:'760',grp:'5',vi:12.35,   da:12.35,   vr:0,        af:2004, vu:10,td:10,  est:'B',fpm:'2004-01-01'},
+  {inv:'510-7337',   d:'CALCULADORA SL-150L',                            area:'760',grp:'5',vi:5.62,    da:5.62,    vr:0,        af:2004, vu:7, td:15,  est:'B',fpm:'2004-01-01'},
+  {inv:'510-73223',  d:'CALCULADORA SL-150L',                            area:'760',grp:'5',vi:5.62,    da:5.62,    vr:0,        af:2004, vu:7, td:15,  est:'B',fpm:'2004-01-01'},
+  {inv:'710-76014',  d:'CENCERRO',                                       area:'760',grp:'7',vi:9.67,    da:9.67,    vr:0,        af:0,    vu:10,td:10,  est:'B',fpm:null},
+  {inv:'510-7723',   d:'COMPUTADORA C/ACCESORIOS',                       area:'760',grp:'5',vi:989.41,  da:989.41,  vr:0,        af:2004, vu:7, td:15,  est:'B',fpm:'2004-01-01'},
+  {inv:'510-8934 A', d:'COMPUTADORA DE ESCRITORIO ATX CHASIS CABOIRAN',  area:'760',grp:'5',vi:548.07,  da:548.07,  vr:0,        af:0,    vu:7, td:15,  est:'B',fpm:null},
+  {inv:'510-6825',   d:'COMPUTADORA PENTIUM III CRONOS',                 area:'760',grp:'5',vi:5212.33, da:5212.33, vr:0,        af:0,    vu:7, td:15,  est:'R',fpm:null},
+  {inv:'510-6873',   d:'DUPLEXAR TELEWARE',                              area:'760',grp:'5',vi:1229.12, da:1229.12, vr:0,        af:2004, vu:10,td:10,  est:'B',fpm:'2004-01-01'},
+  {inv:'510-6874',   d:'FUENTE DE ALIMENTACION',                         area:'760',grp:'5',vi:119.90,  da:119.90,  vr:0,        af:2004, vu:10,td:10,  est:'B',fpm:'2004-01-01'},
+  {inv:'710-10533',  d:'GAVETERO P/BURÓ DE 3 GAVETAS CON LLAVIN',        area:'760',grp:'7',vi:161.11,  da:125.96,  vr:35.15,    af:0,    vu:10,td:10,  est:'B',fpm:'2018-07-31'},
+  {inv:'710-7117',   d:'LINTERNA C/RADIO',                               area:'760',grp:'7',vi:45.10,   da:45.10,   vr:0,        af:2004, vu:10,td:10,  est:'B',fpm:null},
+  {inv:'510-3976',   d:'MAQUINA DE ESCRIBIR',                            area:'760',grp:'5',vi:287.00,  da:287.00,  vr:0,        af:2004, vu:7, td:15,  est:'B',fpm:'2004-01-01'},
+  {inv:'510-0002',   d:'MONITOR LG 21.5 PULGADAS',                       area:'760',grp:'5',vi:4514.40, da:1636.47, vr:2877.93,  af:2023, vu:7, td:15,  est:'B',fpm:'2023-12-06'},
+  {inv:'610-620118', d:'MOTO URAL M-67',                                 area:'760',grp:'6',vi:222.11,  da:222.11,  vr:0,        af:2004, vu:5, td:20,  est:'B',fpm:null},
+  {inv:'510-6876',   d:'PLANTA DE RADIO',                                area:'760',grp:'5',vi:359.49,  da:359.49,  vr:0,        af:2004, vu:10,td:10,  est:'B',fpm:'2004-01-01'},
+  {inv:'710-7296',   d:'RADIO AM/FM',                                    area:'760',grp:'7',vi:25.98,   da:25.98,   vr:0,        af:2004, vu:10,td:10,  est:'B',fpm:null},
+  {inv:'710-8274',   d:'RADIO IC-718 HF',                                area:'760',grp:'7',vi:2407.38, da:2407.38, vr:0,        af:2004, vu:10,td:10,  est:'B',fpm:null},
+  {inv:'710-7840',   d:'REFRIGERADOR DOMESTICO',                         area:'760',grp:'7',vi:800.00,  da:800.00,  vr:0,        af:2004, vu:10,td:10,  est:'B',fpm:null},
+  {inv:'710-7167',   d:'SILLA DE MADERA',                                area:'760',grp:'7',vi:30.45,   da:30.45,   vr:0,        af:2004, vu:10,td:10,  est:'B',fpm:'2004-01-01'},
+  {inv:'710-6473',   d:'SILLA RESPALDO PAJILLA',                         area:'760',grp:'7',vi:47.04,   da:47.04,   vr:0,        af:0,    vu:10,td:10,  est:'B',fpm:null},
+  {inv:'710-7424',   d:'SILLA TAPIZADA',                                 area:'760',grp:'7',vi:125.07,  da:125.07,  vr:0,        af:2004, vu:10,td:10,  est:'B',fpm:'2004-01-01'},
+  {inv:'710-76011',  d:'TAMBORA PLASTICA',                               area:'760',grp:'7',vi:110.27,  da:110.27,  vr:0,        af:0,    vu:10,td:10,  est:'B',fpm:null},
+  {inv:'510-10684',  d:'TELEVISOR DE 32 LG MODELO 32LV340C',             area:'760',grp:'5',vi:358.68,  da:358.68,  vr:0,        af:0,    vu:7, td:15,  est:'B',fpm:'2019-02-06'},
+  {inv:'710-0006',   d:'TV LED RCA 50" HD',                              area:'760',grp:'7',vi:19152.00,da:1005.48, vr:18146.52, af:0,    vu:12,td:9,   est:'B',fpm:'2025-10-20'},
+  {inv:'710-711',    d:'VENTILADOR DE PEDESTAL ARIETE 3 VET 16 PULG',    area:'760',grp:'7',vi:18.70,   da:13.00,   vr:5.70,     af:0,    vu:12,td:10,  est:'B',fpm:'2019-04-30'},
+  {inv:'710-8809',   d:'VENTILADOR PEDESTAL 16"',                        area:'760',grp:'7',vi:25.71,   da:25.71,   vr:0,        af:0,    vu:10,td:10,  est:'S',fpm:null},
+];
+
+/* ═══════════════════════════════════
+   ESTADO LABELS
+═══════════════════════════════════ */
+const estLabel = { B:'Bueno', M:'Malo', R:'Regular', I:'Inutilizable', S:'Sin datos', ' ':'Sin datos' };
+
+/* ═══════════════════════════════════
+   RENDER
+═══════════════════════════════════ */
+const fmt  = n => n.toLocaleString('es-CU',{minimumFractionDigits:2,maximumFractionDigits:2});
+const tbody = document.getElementById('tbody');
+
+function estChip(e) {
+  const k = e && e.trim() ? e.trim() : 'S';
+  const lbl = estLabel[k] || 'Sin datos';
+  return `<span class="est-chip ${k}">${lbl}</span>`;
+}
+
+function areaPill(a) {
+  const info = areas[a];
+  return `<span class="area-pill ${info.cls}">${info.name}</span>`;
+}
+
+function renderRows(data) {
+  tbody.innerHTML = '';
+  if (!data.length) {
+    document.getElementById('noResults').style.display = 'block';
+    document.getElementById('countBadge').textContent = 'Sin resultados';
+    return;
+  }
+  document.getElementById('noResults').style.display = 'none';
+  document.getElementById('countBadge').textContent = `Mostrando ${data.length} activos`;
+
+  data.forEach(r => {
+    const tr = document.createElement('tr');
+    const vrClass = r.vr > 0 ? 'vr-pos' : 'vr-zero';
+    tr.dataset.area = r.area;
+    tr.dataset.est  = r.est ? r.est.trim() : '';
+    tr.dataset.inv  = r.inv.toLowerCase();
+    tr.dataset.desc = r.d.toLowerCase();
+    tr.innerHTML = `
+      <td style="font-family:var(--mono);font-size:11px;color:var(--text2)">${r.inv}</td>
+      <td>${r.d}</td>
+      <td>${areaPill(r.area)}</td>
+      <td class="num">${fmt(r.vi)}</td>
+      <td class="num" style="color:var(--text3)">${fmt(r.da)}</td>
+      <td class="num ${vrClass}">${r.vr > 0 ? fmt(r.vr) : '<span style="color:var(--text3)">—</span>'}</td>
+      <td>${r.af && r.af > 0 ? r.af : '<span style="color:var(--text3)">—</span>'}</td>
+      <td class="num">${r.vu > 0 ? r.vu+' a' : '<span style="color:var(--text3)">—</span>'}</td>
+      <td class="num">${r.td > 0 ? r.td+'%' : '<span style="color:var(--text3)">—</span>'}</td>
+      <td>${estChip(r.est)}</td>
+      <td style="color:var(--text3)">${r.fpm || '<span style="color:var(--border3)">—</span>'}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+// Initial render
+renderRows(raw);
+
+/* ═══════════════════════════════════
+   FILTERS
+═══════════════════════════════════ */
+let activeArea = 'all';
+let activeEst  = 'all';
+
+function filterArea(code, btn) {
+  activeArea = code;
+  document.querySelectorAll('.filter-group:first-of-type .filter-btn').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  // Highlight area card
+  document.querySelectorAll('.area-card').forEach(c => c.classList.remove('active'));
+  if (code !== 'all') {
+    const card = document.querySelector('.area-card.a'+code);
+    if (card) card.classList.add('active');
+  }
+  applyFilters();
+}
+
+function filterEstado(est, btn) {
+  activeEst = est;
+  document.querySelectorAll('#estBtnAll,#estBtnB,#estBtnM,#estBtnR').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  applyFilters();
+}
+
+function applyFilters() {
+  const q = document.getElementById('searchBox').value.toLowerCase();
+  const filtered = raw.filter(r => {
+    const matchArea = activeArea === 'all' || r.area === activeArea;
+    const matchEst  = activeEst  === 'all' || (r.est && r.est.trim()) === activeEst;
+    const matchQ    = !q || r.inv.toLowerCase().includes(q) || r.d.toLowerCase().includes(q);
+    return matchArea && matchEst && matchQ;
+  });
+  renderRows(filtered);
+}
+
+/* ═══════════════════════════════════
+   SORTING
+═══════════════════════════════════ */
+let sortCol = -1, sortAsc = true;
+
+function sortTable(col) {
+  if (sortCol === col) sortAsc = !sortAsc;
+  else { sortCol = col; sortAsc = true; }
+
+  document.querySelectorAll('thead th').forEach((th,i) => {
+    th.classList.toggle('sorted', i === col);
+    const arr = th.querySelector('.sort-arrow');
+    if (arr) arr.textContent = i === col ? (sortAsc ? '↑' : '↓') : '↕';
+  });
+
+  const keys = ['inv','d','area','vi','da','vr','af','vu','td','est','fpm'];
+  const key  = keys[col];
+
+  const current = raw.filter(r => {
+    const matchArea = activeArea === 'all' || r.area === activeArea;
+    const matchEst  = activeEst  === 'all' || (r.est && r.est.trim()) === activeEst;
+    const q = document.getElementById('searchBox').value.toLowerCase();
+    const matchQ = !q || r.inv.toLowerCase().includes(q) || r.d.toLowerCase().includes(q);
+    return matchArea && matchEst && matchQ;
+  });
+
+  current.sort((a,b) => {
+    let va = a[key], vb = b[key];
+    if (va == null) va = '';
+    if (vb == null) vb = '';
+    if (typeof va === 'number' && typeof vb === 'number') return sortAsc ? va-vb : vb-va;
+    return sortAsc ? String(va).localeCompare(String(vb)) : String(vb).localeCompare(String(va));
+  });
+
+  renderRows(current);
+}
+</script>
+</body>
+</html>
